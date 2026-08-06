@@ -1,0 +1,27 @@
+* text=auto
+
+*.c text eol=lf
+*.cc text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+*.cmd text eol=crlf
+*.props text eol=crlf
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+
+*.ico binary
+*.jpg binary
+*.png binary
+*.svg text eol=lf

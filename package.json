@@ -1,0 +1,79 @@
+{
+  "name": "ballistics-workbench",
+  "version": "1.0.0",
+  "description": "Windows external-ballistics calculator with a C++20 numerical core.",
+  "author": "Deniz Mert Yayla",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Denizmerty/BallisticsWorkbench.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Denizmerty/BallisticsWorkbench/issues"
+  },
+  "homepage": "https://github.com/Denizmerty/BallisticsWorkbench#readme",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron . --dev\"",
+    "build:web": "tsc -b && vite build",
+    "build": "npm run build:web && tsc -p src/Ballistics.Desktop/electron/tsconfig.json",
+    "format": "scripts\\format.cmd",
+    "format:check": "scripts\\format-check.cmd",
+    "package:win": "npm run build && electron-builder --win nsis",
+    "start": "electron .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.0.5",
+    "concurrently": "10.0.4",
+    "electron": "43.3.0",
+    "electron-builder": "26.15.3",
+    "prettier": "3.6.2",
+    "typescript": "7.0.2",
+    "vite": "8.2.0",
+    "vitest": "3.2.7",
+    "wait-on": "9.1.0"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "build": {
+    "appId": "com.ballisticsworkbench.desktop",
+    "productName": "Ballistics Workbench",
+    "directories": {
+      "output": "outputs/installer"
+    },
+    "files": [
+      "assets/icon.ico",
+      "dist/**/*",
+      "dist-electron/**/*",
+      "src/Ballistics.Desktop/electron/preload.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "x64/Release/ballistics_cli.exe",
+        "to": "bin/ballistics_cli.exe"
+      }
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis",
+      "artifactName": "Ballistics-Workbench-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

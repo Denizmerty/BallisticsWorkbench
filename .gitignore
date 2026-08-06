@@ -1,0 +1,55 @@
+# JavaScript dependencies and tool caches
+/node_modules/
+/work/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Native and desktop build products
+/build/
+/dist/
+/dist-*/
+/dist-electron/
+/outputs/
+/x64/
+**/x64/
+**/Debug/
+**/Release/
+*.obj
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.exe
+
+# CMake-generated files
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+cmake_install.cmake
+Testing/
+
+# Visual Studio state
+/.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Electron test state
+/.localappdata-build/
+/.smoke-profile/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Archived implementation retained outside the published source tree
+/reference/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini

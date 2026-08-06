@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11202.55
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ballistics.Core", "src\Ballistics.Core\Ballistics.Core.vcxproj", "{5A08ED43-A8B9-42D5-A94B-852056803DEC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ballistics.Cli", "src\Ballistics.Cli\Ballistics.Cli.vcxproj", "{77B201C4-E24D-489A-BEC0-560F0E5BC95E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ballistics.Desktop", "src\Ballistics.Desktop\Ballistics.Desktop.vcxproj", "{0C106EB8-14E7-482E-844E-806112651C92}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ballistics.Core.Tests", "tests\Ballistics.Core.Tests\Ballistics.Core.Tests.vcxproj", "{3D5400AC-91BA-4B83-B72F-26BB019453DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A08ED43-A8B9-42D5-A94B-852056803DEC}.Debug|x64.ActiveCfg = Debug|x64
+		{5A08ED43-A8B9-42D5-A94B-852056803DEC}.Debug|x64.Build.0 = Debug|x64
+		{5A08ED43-A8B9-42D5-A94B-852056803DEC}.Release|x64.ActiveCfg = Release|x64
+		{5A08ED43-A8B9-42D5-A94B-852056803DEC}.Release|x64.Build.0 = Release|x64
+		{77B201C4-E24D-489A-BEC0-560F0E5BC95E}.Debug|x64.ActiveCfg = Debug|x64
+		{77B201C4-E24D-489A-BEC0-560F0E5BC95E}.Debug|x64.Build.0 = Debug|x64
+		{77B201C4-E24D-489A-BEC0-560F0E5BC95E}.Release|x64.ActiveCfg = Release|x64
+		{77B201C4-E24D-489A-BEC0-560F0E5BC95E}.Release|x64.Build.0 = Release|x64
+		{0C106EB8-14E7-482E-844E-806112651C92}.Debug|x64.ActiveCfg = Debug|x64
+		{0C106EB8-14E7-482E-844E-806112651C92}.Debug|x64.Build.0 = Debug|x64
+		{0C106EB8-14E7-482E-844E-806112651C92}.Release|x64.ActiveCfg = Release|x64
+		{0C106EB8-14E7-482E-844E-806112651C92}.Release|x64.Build.0 = Release|x64
+		{3D5400AC-91BA-4B83-B72F-26BB019453DE}.Debug|x64.ActiveCfg = Debug|x64
+		{3D5400AC-91BA-4B83-B72F-26BB019453DE}.Debug|x64.Build.0 = Debug|x64
+		{3D5400AC-91BA-4B83-B72F-26BB019453DE}.Release|x64.ActiveCfg = Release|x64
+		{3D5400AC-91BA-4B83-B72F-26BB019453DE}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+EndGlobal
