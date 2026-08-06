@@ -1,0 +1,85 @@
+# Development Guide
+
+## Architecture
+
+Ballistics Workbench is divided into four build targets:
+
+```text
+React renderer
+    │ context-isolated IPC
+Electron main process
+    │ JSON over stdout
+Ballistics.Cli
+    │ direct library calls
+Ballistics.Core
+```
+
+`Ballistics.Core` owns the physical models and numerical integration. `Ballistics.Cli` validates
+input arguments and serializes calculation results as JSON. The Electron main process invokes the
+CLI with `execFile`, while the renderer receives a narrow API from the context-isolated preload
+script.
+
+The renderer has no direct Node.js access. It may also run through Vite during development; the
+development middleware invokes the C++ CLI using the same argument contract.
+
+## Native builds
+
+### Visual Studio
+
+Open `BallisticsWorkbench.sln`, select `Debug | x64` or `Release | x64`, and build the solution.
+Shared compiler settings are defined in `Directory.Build.props`.
+
+### CMake and Ninja
+
+Run:
+
+```powershell
+.\scripts\build.cmd
+```
+
+The script locates the newest Visual Studio installation containing the C++ toolchain, configures
+CMake with Ninja, builds the native targets, and runs CTest.
+
+## Desktop builds
+
+Install the exact dependency graph recorded in `package-lock.json`:
+
+```powershell
+npm ci
+```
+
+Available commands:
+
+```text
+npm run dev           Vite and Electron development session
+npm run build         Production renderer and Electron main-process build
+npm run start         Run the most recent production build
+npm run package:win   Build the NSIS installer
+npm run format        Apply C++ and web-source formatting
+npm run format:check  Verify formatting without changing files
+```
+
+The Visual Studio desktop project calls `scripts\build-desktop.cmd`, which restores missing npm
+dependencies before building.
+
+## Tests
+
+The native regression executable is built as `Ballistics.Core.Tests`. CMake registers it with
+CTest, and Visual Studio places it under the selected configuration's output directory.
+
+The Electron main process accepts `--smoke-test`. In a packaged application this verifies that the
+bundled native executable starts and returns all built-in loads.
+
+## Release checklist
+
+1. Update the version in `package.json`, `package-lock.json`, and `CMakeLists.txt`.
+2. Run `npm ci`.
+3. Run `npm run format:check`.
+4. Build `Release | x64` in Visual Studio and run `Ballistics.Core.Tests.exe`.
+5. Run `npm run build`.
+6. Run `npm run package:win`.
+7. Run the packaged executable with `--smoke-test`.
+8. Tag the release as `v<version>`.
+
+Generated files, dependencies, installers, IDE state, and local settings are excluded through
+`.gitignore`.

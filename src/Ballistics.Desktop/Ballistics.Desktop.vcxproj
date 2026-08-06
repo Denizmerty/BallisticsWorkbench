@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0C106EB8-14E7-482E-844E-806112651C92}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <ProjectName>Ballistics.Desktop</ProjectName>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <PropertyGroup>
+    <NMakeBuildCommandLine>call &quot;$(SolutionDir)scripts\build-desktop.cmd&quot;</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>call &quot;$(SolutionDir)scripts\build-desktop.cmd&quot;</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>cd /d &quot;$(SolutionDir)&quot; &amp;&amp; if exist dist rmdir /s /q dist &amp;&amp; if exist dist-electron rmdir /s /q dist-electron</NMakeCleanCommandLine>
+    <NMakeOutput>$(SolutionDir)dist\index.html</NMakeOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="electron\main.ts" />
+    <None Include="electron\preload.cjs" />
+    <None Include="electron\tsconfig.json" />
+    <None Include="src\ui\App.tsx" />
+    <None Include="src\ui\main.tsx" />
+    <None Include="src\ui\styles.css" />
+    <None Include="src\ui\types.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ballistics.Cli\Ballistics.Cli.vcxproj">
+      <Project>{77B201C4-E24D-489A-BEC0-560F0E5BC95E}</Project>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
