@@ -21,8 +21,8 @@
     "build": "npm run build:web && tsc -p src/Ballistics.Desktop/electron/tsconfig.json",
     "format": "scripts\\format.cmd",
     "format:check": "scripts\\format-check.cmd",
-    "package:win": "npm run build && electron-builder --win nsis",
-    "package:mac": "npm run build && electron-builder --mac dmg",
+    "package:win": "npm run build && electron-builder --win nsis --publish never",
+    "package:mac": "npm run build && electron-builder --mac dmg --publish never",
     "start": "electron .",
     "test": "vitest run"
   },
