@@ -65,8 +65,29 @@ jobs:
       - name: Run web unit tests
         run: npm test
 
-      - name: Build desktop application
-        run: npm run build
+      - name: Stage the native engine for packaging
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path x64\Release | Out-Null
+          Copy-Item build\ballistics_cli.exe x64\Release\ballistics_cli.exe -Force
+
+      - name: Build the Windows installer
+        run: npm run package:win
+
+      - name: Smoke-test the packaged app on Windows
+        shell: pwsh
+        run: |
+          $exe = 'outputs\installer\win-unpacked\Ballistics Workbench.exe'
+          $result = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -Wait -PassThru
+          Write-Host "Smoke test exit code: $($result.ExitCode)"
+          if ($result.ExitCode -ne 0) { exit $result.ExitCode }
+
+      - name: Upload the Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: outputs/installer/*.exe
+          if-no-files-found: error
 
   macos:
     runs-on: macos-latest

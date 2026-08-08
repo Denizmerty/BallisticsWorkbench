@@ -82,9 +82,15 @@ bundled native executable starts and returns all built-in loads.
 
 `.github/workflows/ci.yml` runs on pushes and pull requests. A Linux job builds and tests the
 native core under GCC and runs the renderer type-check, unit tests, and web build; a Windows job
-additionally checks formatting, runs the MSVC native build, and produces the Electron build. The
+additionally checks formatting, runs the MSVC native build, builds the NSIS installer, launches the
+packaged app with `--smoke-test`, and uploads the installer as the `windows-installer` artifact. The
 native core is portable ISO C++20, so the Linux job gives fast, cross-compiler validation of the
 numerical models.
+
+The Windows job builds the native engine with CMake and Ninja, which writes `ballistics_cli.exe`
+under `build/`; a staging step copies it to `x64/Release/`, where the packaging configuration expects
+it, before running `npm run package:win`. The local `scripts\build-release.cmd` flow, which uses
+MSBuild to produce that path directly, is unaffected.
 
 A macOS job builds and tests the core under Clang, ad-hoc signs the native CLI, generates the app
 icon, and produces the `.dmg` disk image. It then launches the packaged application with
