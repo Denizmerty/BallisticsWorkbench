@@ -22,7 +22,7 @@
     "format": "scripts\\format.cmd",
     "format:check": "scripts\\format-check.cmd",
     "package:win": "npm run build && electron-builder --win nsis --publish never",
-    "package:mac": "npm run build && electron-builder --mac dmg --publish never",
+    "package:mac": "npm run build && electron-builder --mac --universal --publish never",
     "start": "electron .",
     "test": "vitest run"
   },

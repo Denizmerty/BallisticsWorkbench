@@ -92,10 +92,14 @@ under `build/`; a staging step copies it to `x64/Release/`, where the packaging 
 it, before running `npm run package:win`. The local `scripts\build-release.cmd` flow, which uses
 MSBuild to produce that path directly, is unaffected.
 
-A macOS job builds and tests the core under Clang, ad-hoc signs the native CLI, generates the app
-icon, and produces the `.dmg` disk image. It then launches the packaged application with
-`--smoke-test` to confirm the bundled C++ engine starts and returns every built-in load on macOS,
-and uploads the disk image as a build artifact. The macOS build is ad-hoc signed but not notarized:
+A macOS job builds and tests the core under Clang as a universal binary (`arm64` and `x86_64`),
+ad-hoc signs the native CLI, generates the app icon, and produces a universal `.dmg` disk image that
+runs on both Apple Silicon and Intel Macs. It verifies with `lipo` that the packaged app executable
+and the bundled engine both contain the two architectures, then launches the packaged application
+with `--smoke-test` to confirm the bundled C++ engine starts and returns every built-in load on
+macOS, and uploads the disk image as a build artifact. The runner is Apple Silicon, so the smoke
+test exercises the `arm64` slice; the `lipo` check guards the `x86_64` (Intel) slice, which the
+runner cannot execute. The macOS build is ad-hoc signed but not notarized:
 `mac.identity` is `null` and `CSC_IDENTITY_AUTO_DISCOVERY` is `false`, so no Apple Developer
 certificate is involved. Ad-hoc signing is free and is the minimum required for the app to launch on
 Apple Silicon; recipients clear Gatekeeper once on first launch (right-click → Open, or by removing

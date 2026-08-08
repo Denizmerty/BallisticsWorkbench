@@ -41,17 +41,17 @@ The six built-in loads are:
 ### Running the application
 
 - Windows 10 or Windows 11, x64, or
-- macOS 12 Monterey or later (Apple Silicon)
+- macOS 12 Monterey or later (Apple Silicon or Intel)
 
 The Windows NSIS installer is produced from the `Release | x64` configuration. The macOS disk image
 is built on a hosted macOS runner. Both are available on the repository's Releases page.
 
 #### macOS: first launch
 
-The macOS build is **ad-hoc signed but not notarized**, because notarization requires a paid Apple
-Developer membership. The app is not tied to any single Mac and runs on any recent Apple Silicon
-machine, but because it is unnotarized, macOS Gatekeeper stops the very first launch. Clear it once,
-either way:
+The macOS build is a **universal binary** (Apple Silicon and Intel) that is **ad-hoc signed but not
+notarized**, because notarization requires a paid Apple Developer membership. The app is not tied to
+any single Mac and runs on any recent Mac, but because it is unnotarized, macOS Gatekeeper stops the
+very first launch. Clear it once, either way:
 
 - **Right-click** (or Control-click) `Ballistics Workbench.app` in Applications and choose **Open**,
   then confirm **Open** in the dialog, or
@@ -139,15 +139,16 @@ Add `--run` to launch the unpacked application after a successful build:
 
 macOS packaging must run on macOS, so it is automated on a hosted macOS runner rather than built
 from Windows. The `macos` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) compiles the
-native core with Clang, ad-hoc signs it, builds the Electron application, produces the `.dmg`,
-launches the packaged app in `--smoke-test` mode to confirm the bundled C++ engine runs on macOS,
-and uploads the disk image as a build artifact. No Apple Developer membership and no local Mac are
-required.
+native core with Clang as a **universal binary** (`arm64` and `x86_64`), ad-hoc signs it, builds the
+universal Electron application, produces the `.dmg`, verifies both the app and the bundled engine
+contain both architectures, launches the packaged app in `--smoke-test` mode to confirm the bundled
+C++ engine runs on macOS, and uploads the disk image as a build artifact. No Apple Developer
+membership and no local Mac are required.
 
 To build it by hand on a Mac with the Xcode command-line tools and Node.js 22:
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 cmake --build build
 codesign --force --sign - build/ballistics_cli
 npm ci
