@@ -170,6 +170,18 @@ export function HelpNotes() {
         Uncertainty increases beyond measured regions and through transonic flight. Always verify
         real firearms with chronographing and actual zeroing.
       </p>
+
+      <h2>Project, Support, and License</h2>
+      <p>
+        Ballistics Workbench is developed and maintained by <b>Deniz Mert Yayla</b>. For bug
+        reports, proposed fixes, and suggestions, email <b>denizmerty@gmail.com</b>.
+      </p>
+      <p>
+        Copyright &copy; 2026 Deniz Mert Yayla. Ballistics Workbench is free software licensed under
+        the GNU General Public License, version 3 or any later version. The complete license text is
+        included with the source code and packaged application. This software is provided without
+        warranty.
+      </p>
     </article>
   );
 }
