@@ -171,6 +171,15 @@ npm run format:check
 - The application includes an in-program Help page covering operation, calibration, and model
   interpretation.
 
+## Support and contact
+
+Ballistics Workbench is developed and maintained by Deniz Mert Yayla. For bug reports, proposed
+fixes, and suggestions, email [denizmerty@gmail.com](mailto:denizmerty@gmail.com).
+
 ## License
 
-This project is not licensed for redistribution. All rights are reserved.
+Copyright (C) 2026 Deniz Mert Yayla.
+
+Ballistics Workbench is free software licensed under the GNU General Public License, version 3 or
+any later version. You may redistribute and modify it under those terms. See [`LICENSE`](LICENSE)
+for the complete license text. The software is provided without warranty.

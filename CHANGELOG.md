@@ -4,6 +4,11 @@ All notable changes to Ballistics Workbench are recorded in this file.
 
 ## Unreleased
 
+## 1.0.2 - 2026-08-08
+
+- Licensed Ballistics Workbench under the GNU General Public License, version 3 or later, and added
+  author and support contact details to the application Help page and README.
+
 ## 1.0.1 - 2026-08-08
 
 - Reworked the desktop interface into a compact engineering layout with clearer grouping, a

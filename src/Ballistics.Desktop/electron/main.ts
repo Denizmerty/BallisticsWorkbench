@@ -166,7 +166,7 @@ function installApplicationMenu() {
               title: 'About Ballistics Workbench',
               message: `Ballistics Workbench ${app.getVersion()}`,
               detail:
-                'External trajectory analysis powered by a native C++20 numerical engine.\n\nResults are computational estimates. Confirm firearm setup and trajectory with real-world measurement.',
+                'Developed and maintained by Deniz Mert Yayla.\n\nFor bug reports, proposed fixes, and suggestions, email denizmerty@gmail.com.\n\nLicensed under the GNU General Public License, version 3 or any later version.\n\nResults are computational estimates. Confirm firearm setup and trajectory with real-world measurement.',
             }),
         },
       ],
