@@ -4,6 +4,8 @@ All notable changes to Ballistics Workbench are recorded in this file.
 
 ## Unreleased
 
+## 1.0.1 - 2026-08-08
+
 - Reworked the desktop interface into a compact engineering layout with clearer grouping, a
   configurable status strip, responsive controls, aligned field rows, readable numeric inputs,
   safer long-name wrapping, and complete light and dark themes.

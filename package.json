@@ -1,6 +1,6 @@
 {
   "name": "ballistics-workbench",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Windows external-ballistics calculator with a C++20 numerical core.",
   "author": "Deniz Mert Yayla",
   "license": "UNLICENSED",
