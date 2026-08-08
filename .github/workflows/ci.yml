@@ -65,5 +65,95 @@ jobs:
       - name: Run web unit tests
         run: npm test
 
-      - name: Build desktop application
-        run: npm run build
+      - name: Stage the native engine for packaging
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path x64\Release | Out-Null
+          Copy-Item build\ballistics_cli.exe x64\Release\ballistics_cli.exe -Force
+
+      - name: Build the Windows installer
+        run: npm run package:win
+
+      - name: Smoke-test the packaged app on Windows
+        shell: pwsh
+        run: |
+          $exe = 'outputs\installer\win-unpacked\Ballistics Workbench.exe'
+          $result = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -Wait -PassThru
+          Write-Host "Smoke test exit code: $($result.ExitCode)"
+          if ($result.ExitCode -ne 0) { exit $result.ExitCode }
+
+      - name: Upload the Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: outputs/installer/*.exe
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build and test the native core (Clang, universal)
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+          echo "ballistics_cli architectures: $(lipo -archs build/ballistics_cli)"
+          lipo -archs build/ballistics_cli | grep -q x86_64
+          lipo -archs build/ballistics_cli | grep -q arm64
+
+      - name: Ad-hoc sign the native CLI
+        run: codesign --force --sign - build/ballistics_cli
+
+      - name: Install desktop dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run web unit tests
+        run: npm test
+
+      - name: Generate the application icon
+        run: |
+          brew install librsvg
+          bash scripts/make-icns.sh
+
+      - name: Build the macOS disk image
+        env:
+          # Free ad-hoc signing only; no Apple Developer certificate is used.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run package:mac
+
+      - name: Verify the packaged app is universal (Intel + Apple Silicon)
+        run: |
+          app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
+          echo "Inspecting $app"
+          for bin in \
+            "$app/Contents/MacOS/Ballistics Workbench" \
+            "$app/Contents/Resources/bin/ballistics_cli"; do
+            archs="$(lipo -archs "$bin")"
+            echo "  $bin -> $archs"
+            echo "$archs" | grep -q x86_64
+            echo "$archs" | grep -q arm64
+          done
+
+      - name: Smoke-test the packaged app on macOS
+        run: |
+          app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
+          echo "Launching $app --smoke-test"
+          "$app/Contents/MacOS/Ballistics Workbench" --smoke-test
+
+      - name: Upload the macOS disk image
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: outputs/installer/*.dmg
+          if-no-files-found: error

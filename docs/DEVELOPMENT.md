@@ -54,7 +54,8 @@ Available commands:
 npm run dev           Vite and Electron development session
 npm run build         Production renderer and Electron main-process build
 npm run start         Run the most recent production build
-npm run package:win   Build the NSIS installer
+npm run package:win   Build the Windows NSIS installer
+npm run package:mac   Build the macOS disk image (runs on macOS)
 npm test              Run the renderer unit tests (Vitest)
 npm run format        Apply C++ and web-source formatting
 npm run format:check  Verify formatting without changing files
@@ -81,9 +82,28 @@ bundled native executable starts and returns all built-in loads.
 
 `.github/workflows/ci.yml` runs on pushes and pull requests. A Linux job builds and tests the
 native core under GCC and runs the renderer type-check, unit tests, and web build; a Windows job
-additionally checks formatting, runs the MSVC native build, and produces the Electron build. The
+additionally checks formatting, runs the MSVC native build, builds the NSIS installer, launches the
+packaged app with `--smoke-test`, and uploads the installer as the `windows-installer` artifact. The
 native core is portable ISO C++20, so the Linux job gives fast, cross-compiler validation of the
 numerical models.
+
+The Windows job builds the native engine with CMake and Ninja, which writes `ballistics_cli.exe`
+under `build/`; a staging step copies it to `x64/Release/`, where the packaging configuration expects
+it, before running `npm run package:win`. The local `scripts\build-release.cmd` flow, which uses
+MSBuild to produce that path directly, is unaffected.
+
+A macOS job builds and tests the core under Clang as a universal binary (`arm64` and `x86_64`),
+ad-hoc signs the native CLI, generates the app icon, and produces a universal `.dmg` disk image that
+runs on both Apple Silicon and Intel Macs. It verifies with `lipo` that the packaged app executable
+and the bundled engine both contain the two architectures, then launches the packaged application
+with `--smoke-test` to confirm the bundled C++ engine starts and returns every built-in load on
+macOS, and uploads the disk image as a build artifact. The runner is Apple Silicon, so the smoke
+test exercises the `arm64` slice; the `lipo` check guards the `x86_64` (Intel) slice, which the
+runner cannot execute. The macOS build is ad-hoc signed but not notarized:
+`mac.identity` is `null` and `CSC_IDENTITY_AUTO_DISCOVERY` is `false`, so no Apple Developer
+certificate is involved. Ad-hoc signing is free and is the minimum required for the app to launch on
+Apple Silicon; recipients clear Gatekeeper once on first launch (right-click → Open, or by removing
+the quarantine attribute).
 
 ## Release checklist
 
@@ -95,7 +115,9 @@ numerical models.
 6. Run `npm run build`.
 7. Run `npm run package:win`.
 8. Run the packaged executable with `--smoke-test`.
-9. Tag the release as `v<version>`.
+9. Download the `macos-dmg` artifact from the `macos` CI job for the same commit; the job has
+   already smoke-tested it on macOS.
+10. Tag the release as `v<version>`.
 
 Generated files, dependencies, installers, IDE state, and local settings are excluded through
 `.gitignore`.

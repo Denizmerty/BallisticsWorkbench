@@ -1,7 +1,7 @@
 {
   "name": "ballistics-workbench",
   "version": "1.0.2",
-  "description": "Windows external-ballistics calculator with a C++20 numerical core.",
+  "description": "Windows and macOS external-ballistics calculator with a C++20 numerical core.",
   "author": "Deniz Mert Yayla <denizmerty@gmail.com>",
   "license": "GPL-3.0-or-later",
   "private": true,
@@ -21,7 +21,8 @@
     "build": "npm run build:web && tsc -p src/Ballistics.Desktop/electron/tsconfig.json",
     "format": "scripts\\format.cmd",
     "format:check": "scripts\\format-check.cmd",
-    "package:win": "npm run build && electron-builder --win nsis",
+    "package:win": "npm run build && electron-builder --win nsis --publish never",
+    "package:mac": "npm run build && electron-builder --mac --universal --publish never",
     "start": "electron .",
     "test": "vitest run"
   },
@@ -64,20 +65,35 @@
       {
         "from": "LICENSE",
         "to": "LICENSE.txt"
-      },
-      {
-        "from": "x64/Release/ballistics_cli.exe",
-        "to": "bin/ballistics_cli.exe"
       }
     ],
     "win": {
       "icon": "assets/icon.ico",
       "target": "nsis",
-      "artifactName": "Ballistics-Workbench-${version}-Setup.${ext}"
+      "artifactName": "Ballistics-Workbench-${version}-Setup.${ext}",
+      "extraResources": [
+        {
+          "from": "x64/Release/ballistics_cli.exe",
+          "to": "bin/ballistics_cli.exe"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "target": "dmg",
+      "category": "public.app-category.utilities",
+      "artifactName": "Ballistics-Workbench-${version}-${arch}.${ext}",
+      "identity": null,
+      "extraResources": [
+        {
+          "from": "build/ballistics_cli",
+          "to": "bin/ballistics_cli"
+        }
+      ]
     }
   }
 }
