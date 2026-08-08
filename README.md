@@ -1,8 +1,8 @@
 # Ballistics Workbench
 
-Ballistics Workbench is a Windows external-ballistics calculator for shotgun and .308 Winchester
-loads. A native C++20 library performs the numerical work, while the desktop interface is built
-with React, TypeScript, and Electron.
+Ballistics Workbench is a Windows and macOS external-ballistics calculator for shotgun and .308
+Winchester loads. A native C++20 library performs the numerical work, while the desktop interface is
+built with React, TypeScript, and Electron.
 
 > Ballistic results are engineering estimates. Confirm muzzle velocity with a chronograph and
 > verify zero, trajectory, and safe backstops at an appropriate shooting range.
@@ -40,10 +40,28 @@ The six built-in loads are:
 
 ### Running the application
 
-- Windows 10 or Windows 11, x64
+- Windows 10 or Windows 11, x64, or
+- macOS 12 Monterey or later (Apple Silicon)
 
-Installers are produced from the `Release | x64` configuration and are available on the
-repository's Releases page.
+The Windows NSIS installer is produced from the `Release | x64` configuration. The macOS disk image
+is built on a hosted macOS runner. Both are available on the repository's Releases page.
+
+#### macOS: first launch
+
+The macOS build is **ad-hoc signed but not notarized**, because notarization requires a paid Apple
+Developer membership. The app is not tied to any single Mac and runs on any recent Apple Silicon
+machine, but because it is unnotarized, macOS Gatekeeper stops the very first launch. Clear it once,
+either way:
+
+- **Right-click** (or Control-click) `Ballistics Workbench.app` in Applications and choose **Open**,
+  then confirm **Open** in the dialog, or
+- run this in Terminal after copying the app to Applications:
+
+  ```bash
+  xattr -dr com.apple.quarantine "/Applications/Ballistics Workbench.app"
+  ```
+
+After the first successful launch the app opens normally from then on.
 
 ### Building from source
 
@@ -116,6 +134,30 @@ Add `--run` to launch the unpacked application after a successful build:
 ```powershell
 .\scripts\build-release.cmd --run
 ```
+
+## Create the macOS disk image
+
+macOS packaging must run on macOS, so it is automated on a hosted macOS runner rather than built
+from Windows. The `macos` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) compiles the
+native core with Clang, ad-hoc signs it, builds the Electron application, produces the `.dmg`,
+launches the packaged app in `--smoke-test` mode to confirm the bundled C++ engine runs on macOS,
+and uploads the disk image as a build artifact. No Apple Developer membership and no local Mac are
+required.
+
+To build it by hand on a Mac with the Xcode command-line tools and Node.js 22:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+codesign --force --sign - build/ballistics_cli
+npm ci
+brew install librsvg          # one-time, for icon generation
+bash scripts/make-icns.sh
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run package:mac
+```
+
+The disk image is written to `outputs/installer/`. The build is ad-hoc signed only; see
+[macOS: first launch](#macos-first-launch) for how recipients clear Gatekeeper on other Macs.
 
 ## Basic usage
 

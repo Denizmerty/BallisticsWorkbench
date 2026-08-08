@@ -54,7 +54,8 @@ Available commands:
 npm run dev           Vite and Electron development session
 npm run build         Production renderer and Electron main-process build
 npm run start         Run the most recent production build
-npm run package:win   Build the NSIS installer
+npm run package:win   Build the Windows NSIS installer
+npm run package:mac   Build the macOS disk image (runs on macOS)
 npm test              Run the renderer unit tests (Vitest)
 npm run format        Apply C++ and web-source formatting
 npm run format:check  Verify formatting without changing files
@@ -85,6 +86,15 @@ additionally checks formatting, runs the MSVC native build, and produces the Ele
 native core is portable ISO C++20, so the Linux job gives fast, cross-compiler validation of the
 numerical models.
 
+A macOS job builds and tests the core under Clang, ad-hoc signs the native CLI, generates the app
+icon, and produces the `.dmg` disk image. It then launches the packaged application with
+`--smoke-test` to confirm the bundled C++ engine starts and returns every built-in load on macOS,
+and uploads the disk image as a build artifact. The macOS build is ad-hoc signed but not notarized:
+`mac.identity` is `null` and `CSC_IDENTITY_AUTO_DISCOVERY` is `false`, so no Apple Developer
+certificate is involved. Ad-hoc signing is free and is the minimum required for the app to launch on
+Apple Silicon; recipients clear Gatekeeper once on first launch (right-click → Open, or by removing
+the quarantine attribute).
+
 ## Release checklist
 
 1. Update the version in `package.json`, `package-lock.json`, and `CMakeLists.txt`.
@@ -95,7 +105,9 @@ numerical models.
 6. Run `npm run build`.
 7. Run `npm run package:win`.
 8. Run the packaged executable with `--smoke-test`.
-9. Tag the release as `v<version>`.
+9. Download the `macos-dmg` artifact from the `macos` CI job for the same commit; the job has
+   already smoke-tested it on macOS.
+10. Tag the release as `v<version>`.
 
 Generated files, dependencies, installers, IDE state, and local settings are excluded through
 `.gitignore`.

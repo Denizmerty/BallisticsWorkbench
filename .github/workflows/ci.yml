@@ -67,3 +67,55 @@ jobs:
 
       - name: Build desktop application
         run: npm run build
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build and test the native core (Clang)
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+      - name: Ad-hoc sign the native CLI
+        run: codesign --force --sign - build/ballistics_cli
+
+      - name: Install desktop dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run web unit tests
+        run: npm test
+
+      - name: Generate the application icon
+        run: |
+          brew install librsvg
+          bash scripts/make-icns.sh
+
+      - name: Build the macOS disk image
+        env:
+          # Free ad-hoc signing only; no Apple Developer certificate is used.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run package:mac
+
+      - name: Smoke-test the packaged app on macOS
+        run: |
+          app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
+          echo "Launching $app --smoke-test"
+          "$app/Contents/MacOS/Ballistics Workbench" --smoke-test
+
+      - name: Upload the macOS disk image
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: outputs/installer/*.dmg
+          if-no-files-found: error

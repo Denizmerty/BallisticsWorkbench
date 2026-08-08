@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron';
+import type { MenuItemConstructorOptions } from 'electron';
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
@@ -9,6 +10,8 @@ import { promisify } from 'node:util';
 const execute = promisify(execFile);
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(dirname, '..');
+const isMac = process.platform === 'darwin';
+const cliName = process.platform === 'win32' ? 'ballistics_cli.exe' : 'ballistics_cli';
 const smokeTestMode = process.argv.includes('--smoke-test');
 if (smokeTestMode) {
   app.disableHardwareAcceleration();
@@ -17,12 +20,13 @@ if (smokeTestMode) {
 
 async function calculateNative(input: Record<string, number | string | undefined>) {
   const developmentBinaries = [
-    path.join(projectRoot, 'x64', 'Release', 'ballistics_cli.exe'),
-    path.join(projectRoot, 'x64', 'Debug', 'ballistics_cli.exe'),
-    path.join(projectRoot, 'build', 'ballistics_cli.exe'),
+    path.join(projectRoot, 'x64', 'Release', cliName),
+    path.join(projectRoot, 'x64', 'Debug', cliName),
+    path.join(projectRoot, 'build', cliName),
+    path.join(projectRoot, 'build', 'Release', cliName),
   ];
   const binary = app.isPackaged
-    ? path.join(process.resourcesPath, 'bin', 'ballistics_cli.exe')
+    ? path.join(process.resourcesPath, 'bin', cliName)
     : (developmentBinaries.find(existsSync) ?? developmentBinaries[0]);
   const args = [
     '--distance',
@@ -105,13 +109,14 @@ ipcMain.handle('ballistics:save-csv', async (event, content: string, defaultName
 function installApplicationMenu() {
   const sendToWindow = (channel: string) =>
     BrowserWindow.getFocusedWindow()?.webContents.send(channel);
-  const menu = Menu.buildFromTemplate([
+  const template: MenuItemConstructorOptions[] = [
+    ...(isMac ? [{ role: 'appMenu' } as MenuItemConstructorOptions] : []),
     {
       label: 'File',
       submenu: [
         {
           label: 'Export range table…',
-          accelerator: 'Ctrl+E',
+          accelerator: 'CmdOrCtrl+E',
           click: () => sendToWindow('menu:export-csv'),
         },
         { type: 'separator' },
@@ -120,7 +125,9 @@ function installApplicationMenu() {
           click: () => sendToWindow('menu:add-custom'),
         },
         { type: 'separator' },
-        { label: 'Exit', accelerator: 'Alt+F4', click: () => app.quit() },
+        isMac
+          ? { role: 'close' }
+          : { label: 'Exit', accelerator: 'Alt+F4', click: () => app.quit() },
       ],
     },
     {
@@ -136,7 +143,7 @@ function installApplicationMenu() {
         },
         {
           label: 'Reset atmosphere',
-          accelerator: 'Ctrl+R',
+          accelerator: 'CmdOrCtrl+R',
           click: () => sendToWindow('menu:reset-atmosphere'),
         },
         { type: 'separator' },
@@ -171,7 +178,8 @@ function installApplicationMenu() {
         },
       ],
     },
-  ]);
+  ];
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
 
