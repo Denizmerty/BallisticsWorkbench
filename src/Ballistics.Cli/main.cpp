@@ -82,6 +82,7 @@ int main(int argc, char** argv) {
     const auto pressure = argument(argc, argv, "--pressure", 1013.25);
     const auto humidity = argument(argc, argv, "--humidity", 50);
     const auto wind = argument(argc, argv, "--headwind", 0);
+    const auto crosswind = argument(argc, argv, "--crosswind", 0);
     const auto vital = argument(argc, argv, "--vital-zone", .15);
     const auto shotgun_sight = argument(argc, argv, "--shotgun-sight", .025);
     const auto rifle_sight = argument(argc, argv, "--rifle-sight", .04);
@@ -94,13 +95,14 @@ int main(int argc, char** argv) {
     require_range(pressure, 500, 1100, "Station pressure (hPa)");
     require_range(humidity, 0, 100, "Humidity (%)");
     require_range(wind, -100, 100, "Headwind (m/s)");
+    require_range(crosswind, -100, 100, "Crosswind (m/s)");
     require_range(vital, .01, 2, "Vital zone (m)");
     require_range(shotgun_sight, 0, .25, "Shotgun sight height (m)");
     require_range(rifle_sight, 0, .25, "Rifle sight height (m)");
     require_range(shotgun_mv, .75, 1.25, "Shotgun velocity multiplier");
     require_range(rifle_mv, .75, 1.25, "Rifle velocity multiplier");
     require_range(rifle_twist, 5, 30, "Rifle twist (in/turn)");
-    const auto atmosphere = Atmosphere::create(temperature, pressure, humidity, wind);
+    const auto atmosphere = Atmosphere::create(temperature, pressure, humidity, wind, crosswind);
 
     std::cout << std::setprecision(15)
               << "{\"atmosphere\":{\"densityKgM3\":" << atmosphere.density_kg_m3
@@ -205,7 +207,8 @@ int main(int argc, char** argv) {
                   << ",\"energyJ\":" << trajectory.energies[i]
                   << ",\"momentumKgms\":" << trajectory.momenta[i]
                   << ",\"timeS\":" << trajectory.times[i] << ",\"dropM\":" << trajectory.drops[i]
-                  << ",\"mach\":" << diagnostics.mach << ",\"spinDriftM\":" << spin;
+                  << ",\"mach\":" << diagnostics.mach << ",\"spinDriftM\":" << spin
+                  << ",\"windDriftM\":" << trajectory.wind_drifts[i];
         if (diagnostics.has_sphere_data) {
           std::cout << ",\"cd\":" << diagnostics.cd << ",\"reynolds\":" << diagnostics.reynolds;
         }

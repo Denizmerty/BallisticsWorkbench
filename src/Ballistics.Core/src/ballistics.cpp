@@ -166,47 +166,53 @@ double g1_retardation(double speed_fps, double bc) {
   return 0.0;
 }
 
-using State = std::array<double, 4>;
+// State is integrated over horizontal downrange distance x: {time, vertical position y,
+// lateral position z, and the three ground-frame velocity components}. z and vz are the lateral
+// (windage) axis, positive to the shooter's right; with zero crosswind they remain exactly zero
+// and the solution reduces to the vertical-plane trajectory.
+using State = std::array<double, 6>;
 
 State derivative(const State& s, const Projectile& p, const Atmosphere& a) {
-  const auto vx_safe = std::max(s[2], 1e-6);
-  const auto rx = s[2] + a.headwind_mps;
-  const auto ry = s[3];
-  const auto relative = std::hypot(rx, ry);
+  const auto vx_safe = std::max(s[3], 1e-6);
+  const auto rx = s[3] + a.headwind_mps;
+  const auto ry = s[4];
+  const auto rz = s[5] - a.crosswind_mps;
+  const auto relative = std::hypot(rx, ry, rz);
 
   const auto retard = drag_retardation_mps2(relative, p, a);
   const auto ax = relative > 1e-9 ? -retard * rx / relative : 0.0;
   const auto ay = relative > 1e-9 ? -retard * ry / relative - gravity_mps2 : -gravity_mps2;
+  const auto az = relative > 1e-9 ? -retard * rz / relative : 0.0;
 
-  return {1.0 / vx_safe, s[3] / vx_safe, ax / vx_safe, ay / vx_safe};
+  return {1.0 / vx_safe, s[4] / vx_safe, s[5] / vx_safe, ax / vx_safe, ay / vx_safe, az / vx_safe};
 }
 
 State rk4(const State& s, double dx, const Projectile& p, const Atmosphere& a) {
   const auto k1 = derivative(s, p, a);
 
   State s2{};
-  for (int i = 0; i < 4; ++i) {
+  for (std::size_t i = 0; i < s.size(); ++i) {
     s2[i] = s[i] + 0.5 * dx * k1[i];
   }
 
   const auto k2 = derivative(s2, p, a);
 
   State s3{};
-  for (int i = 0; i < 4; ++i) {
+  for (std::size_t i = 0; i < s.size(); ++i) {
     s3[i] = s[i] + 0.5 * dx * k2[i];
   }
 
   const auto k3 = derivative(s3, p, a);
 
   State s4{};
-  for (int i = 0; i < 4; ++i) {
+  for (std::size_t i = 0; i < s.size(); ++i) {
     s4[i] = s[i] + dx * k3[i];
   }
 
   const auto k4 = derivative(s4, p, a);
 
   State out{};
-  for (int i = 0; i < 4; ++i) {
+  for (std::size_t i = 0; i < s.size(); ++i) {
     out[i] = s[i] + dx * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]) / 6.0;
   }
 
@@ -229,7 +235,8 @@ double pressure_to_altitude_m(double pressure_hpa) {
   return icao_t0 / icao_lapse * (1.0 - std::pow(p / icao_p0, 1.0 / icao_exp));
 }
 
-Atmosphere Atmosphere::create(double temp_c, double pressure_hpa, double humidity, double wind) {
+Atmosphere Atmosphere::create(double temp_c, double pressure_hpa, double humidity, double wind,
+                              double crosswind) {
   if (temp_c < -60.0 || temp_c > 60.0) {
     throw std::invalid_argument("temperature out of range");
   }
@@ -241,6 +248,9 @@ Atmosphere Atmosphere::create(double temp_c, double pressure_hpa, double humidit
   }
   if (wind < -100.0 || wind > 100.0) {
     throw std::invalid_argument("wind out of range");
+  }
+  if (crosswind < -100.0 || crosswind > 100.0) {
+    throw std::invalid_argument("crosswind out of range");
   }
 
   const auto temp_k = temp_c + 273.15;
@@ -256,7 +266,7 @@ Atmosphere Atmosphere::create(double temp_c, double pressure_hpa, double humidit
   const auto viscosity = mu_ref * std::pow(temp_k / temp_ref, 1.5) * (temp_ref + sutherland_c) /
                          (temp_k + sutherland_c);
 
-  return {temp_c, pressure_hpa, humidity, wind, density, sound, viscosity};
+  return {temp_c, pressure_hpa, humidity, wind, crosswind, density, sound, viscosity};
 }
 
 double sphere_drag_vs_reynolds(double re) {
@@ -325,7 +335,7 @@ BallisticPoint Trajectory::point_at(double distance) const {
   auto it = std::lower_bound(distances.begin(), distances.end(), x);
 
   if (it == distances.begin()) {
-    return {distances[0], speeds[0], energies[0], momenta[0], times[0], drops[0]};
+    return {distances[0], speeds[0], energies[0], momenta[0], times[0], drops[0], wind_drifts[0]};
   }
 
   auto i = static_cast<std::size_t>(it - distances.begin());
@@ -337,7 +347,13 @@ BallisticPoint Trajectory::point_at(double distance) const {
   const auto lerp = [&](const auto& v) { return v[i - 1] + f * (v[i] - v[i - 1]); };
   const auto speed = lerp(speeds);
 
-  return {x, speed, 0.5 * mass_kg * speed * speed, mass_kg * speed, lerp(times), lerp(drops)};
+  return {x,
+          speed,
+          0.5 * mass_kg * speed * speed,
+          mass_kg * speed,
+          lerp(times),
+          lerp(drops),
+          lerp(wind_drifts)};
 }
 
 Trajectory integrate_trajectory(const Projectile& p, const Atmosphere& a, double max_distance,
@@ -352,10 +368,11 @@ Trajectory integrate_trajectory(const Projectile& p, const Atmosphere& a, double
   max_distance = std::max(0.0, max_distance);
   const auto v0 = p.muzzle_velocity_mps * multiplier;
 
-  State state{0.0, 0.0, v0, 0.0};
+  State state{0.0, 0.0, 0.0, v0, 0.0, 0.0};
   double distance = 0.0;
 
-  Trajectory t{{0.0}, {v0}, {0.5 * p.mass_kg * v0 * v0}, {p.mass_kg * v0}, {0.0}, {0.0}, p.mass_kg};
+  Trajectory t{{0.0}, {v0},     {0.5 * p.mass_kg * v0 * v0}, {p.mass_kg * v0}, {0.0}, {0.0},
+               {0.0}, p.mass_kg};
 
   while (distance < max_distance) {
     const auto step = std::min(dx, max_distance - distance);
@@ -363,11 +380,11 @@ Trajectory integrate_trajectory(const Projectile& p, const Atmosphere& a, double
     distance += step;
 
     if (!std::all_of(state.begin(), state.end(), [](double v) { return std::isfinite(v); }) ||
-        state[2] <= 1.0) {
+        state[3] <= 1.0) {
       break;
     }
 
-    const auto speed = std::hypot(state[2], state[3]);
+    const auto speed = std::hypot(state[3], state[4], state[5]);
 
     t.distances.push_back(distance);
     t.speeds.push_back(speed);
@@ -375,6 +392,7 @@ Trajectory integrate_trajectory(const Projectile& p, const Atmosphere& a, double
     t.momenta.push_back(p.mass_kg * speed);
     t.times.push_back(state[0]);
     t.drops.push_back(-state[1]);
+    t.wind_drifts.push_back(state[2]);
   }
 
   return t;

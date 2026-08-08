@@ -33,6 +33,7 @@ function cppDevelopmentApi() {
             pressureHpa: '--pressure',
             humidityPercent: '--humidity',
             headwindMps: '--headwind',
+            crosswindMps: '--crosswind',
             vitalZoneM: '--vital-zone',
             shotgunSightM: '--shotgun-sight',
             rifleSightM: '--rifle-sight',

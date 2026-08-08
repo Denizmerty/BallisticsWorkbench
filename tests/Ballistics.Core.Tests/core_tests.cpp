@@ -167,5 +167,41 @@ int main() {
 
   expect_near("spin direction symmetry", spin_right, -spin_left, 1e-15);
 
+  // Crosswind wind drift (full 3D integration).
+  {
+    const auto calm = Atmosphere::create(15, 1013.25, 50, 0, 0);
+    const auto calm_traj = integrate_trajectory(loads[3], calm, 500);
+    expect_near("no crosswind means no drift at 100", calm_traj.point_at(100).wind_drift_m, 0.0,
+                1e-15);
+    expect_near("no crosswind means no drift at 500", calm_traj.point_at(500).wind_drift_m, 0.0,
+                1e-15);
+
+    const auto right = Atmosphere::create(15, 1013.25, 50, 0, 5);
+    const auto left = Atmosphere::create(15, 1013.25, 50, 0, -5);
+    const auto right_traj = integrate_trajectory(loads[3], right, 500);
+    const auto left_traj = integrate_trajectory(loads[3], left, 500);
+
+    const auto drift_300 = right_traj.point_at(300).wind_drift_m;
+    expect_true("positive crosswind drifts right", drift_300 > 0.0);
+    expect_near("crosswind sign symmetry", drift_300, -left_traj.point_at(300).wind_drift_m, 1e-12);
+
+    // Drift grows monotonically downrange.
+    expect_true("drift increases with range",
+                right_traj.point_at(500).wind_drift_m > drift_300 &&
+                    drift_300 > right_traj.point_at(100).wind_drift_m);
+
+    // Small-angle crosswind is very nearly linear in wind speed.
+    const auto right_ten = Atmosphere::create(15, 1013.25, 50, 0, 10);
+    const auto drift_10 = integrate_trajectory(loads[3], right_ten, 500).point_at(300).wind_drift_m;
+    expect_near("drift is linear in wind speed", drift_10, 2.0 * drift_300, 0.02 * drift_10);
+
+    // Cross-check against the independent point-mass "lag time" model:
+    // drift ~= crosswind * (time_of_flight - range / muzzle_velocity).
+    const auto tof = right_traj.point_at(300).time_s;
+    const auto lag_drift = 5.0 * (tof - 300.0 / loads[3].muzzle_velocity_mps);
+    expect_true("integrated drift agrees with lag-time model",
+                std::abs(drift_300 - lag_drift) / drift_300 < 0.15);
+  }
+
   std::cout << "All C++ numerical regression tests passed.\n";
 }
