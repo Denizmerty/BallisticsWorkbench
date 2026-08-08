@@ -45,6 +45,7 @@ Testing/
 .env
 .env.*
 !.env.example
+/.claude/
 
 # Archived implementation retained outside the published source tree
 /reference/

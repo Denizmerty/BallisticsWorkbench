@@ -1,5 +1,6 @@
 import type { Inputs, Result } from '../types';
 import { GR_TO_KG, IN_TO_M, J_TO_FTLB, KGMS_TO_LBFTS, MPS_TO_FPS, M_TO_YD } from './units';
+import { holdoverMil, holdoverMoa, sightGeometry, sightPathM } from './holdover';
 import { firearmLabel } from './labels';
 import { pointAt } from './trajectory';
 
@@ -18,6 +19,12 @@ export function buildCsv(result: Result, inputs: Inputs, step: number, imperial:
       `humidity=${inputs.humidityPercent.toFixed(3)} %`,
       `altitude=${inputs.altitudeM.toFixed(3)} m`,
       `headwind=${inputs.headwindMps.toFixed(3)} m/s`,
+      `crosswind=${inputs.crosswindMps.toFixed(3)} m/s`,
+    ],
+    [
+      '# Zeroing',
+      `shotgun zero=${inputs.shotgunZeroM.toFixed(3)} m`,
+      `rifle zero=${inputs.rifleZeroM.toFixed(3)} m`,
     ],
     [
       '# Derived atmosphere',
@@ -47,8 +54,16 @@ export function buildCsv(result: Result, inputs: Inputs, step: number, imperial:
       'Sphere Cd',
       'Sphere Reynolds',
       `Spin drift (${dropUnit})`,
+      `Wind drift (${dropUnit})`,
+      `Total windage (${dropUnit})`,
+      `Sight path (${dropUnit})`,
+      'Holdover (MOA)',
+      'Holdover (mil)',
     ],
   ];
+  const geometry = new Map(
+    result.loads.map((load) => [load.name, sightGeometry(load, inputs, inputs)]),
+  );
   for (
     let d = 0;
     d <= Math.max(...result.loads.map((l) => l.points.at(-1)?.distanceM || 0));
@@ -83,6 +98,16 @@ export function buildCsv(result: Result, inputs: Inputs, step: number, imperial:
         p.cd?.toFixed(6) || '',
         p.reynolds?.toFixed(0) || '',
         (p.spinDriftM * (imperial ? 1 / IN_TO_M : 100)).toFixed(4),
+        (p.windDriftM * (imperial ? 1 / IN_TO_M : 100)).toFixed(4),
+        ((p.spinDriftM + p.windDriftM) * (imperial ? 1 / IN_TO_M : 100)).toFixed(4),
+        ...(() => {
+          const path = sightPathM(p.dropM, p.distanceM, geometry.get(load.name)!);
+          return [
+            (path * (imperial ? 1 / IN_TO_M : 100)).toFixed(4),
+            holdoverMoa(path, p.distanceM).toFixed(4),
+            holdoverMil(path, p.distanceM).toFixed(4),
+          ];
+        })(),
       ]);
     }
   return (

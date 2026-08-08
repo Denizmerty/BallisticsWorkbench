@@ -1,17 +1,19 @@
 import type { Load, Metric, Point, UnitSystem } from '../types';
 import { IN_TO_M, J_TO_FTLB, KGMS_TO_LBFTS, MPS_TO_FPS, M_TO_YD } from '../lib/units';
+import { formatDistance, formatNumber } from '../lib/format';
+import { holdoverMoa, sightGeometry, sightPathM, type SightGeometry } from '../lib/holdover';
 import { pointAt } from '../lib/trajectory';
 
 const CHART_COLORS = [
-  '#2f6fda',
-  '#b85c18',
-  '#218739',
-  '#a23f77',
-  '#6b57b7',
-  '#96720f',
-  '#23858c',
-  '#b33b3b',
-  '#5c718d',
+  '#3b6ea5',
+  '#a6572e',
+  '#4a7c59',
+  '#86608e',
+  '#b0892e',
+  '#3f7d80',
+  '#9c4a4a',
+  '#5a6b7d',
+  '#6a7f3c',
 ];
 
 export function Sparkline({
@@ -21,6 +23,8 @@ export function Sparkline({
   units,
   selectedDistance,
   onSelectedDistance,
+  sightHeights,
+  zeros,
 }: {
   loads: Load[];
   selectedLoad: Load;
@@ -28,11 +32,19 @@ export function Sparkline({
   units: UnitSystem;
   selectedDistance: number;
   onSelectedDistance: (distance: number) => void;
+  sightHeights: { shotgunSightM: number; rifleSightM: number };
+  zeros: { shotgunZeroM: number; rifleZeroM: number };
 }) {
   if (!loads.length || !selectedLoad.points.length) return null;
 
   const imperial = units === 'imperial';
   const xMax = Math.max(1, ...loads.map((load) => load.points.at(-1)?.distanceM ?? 0));
+  const linear = imperial ? 1 / IN_TO_M : 100;
+  const geometry = new Map<string, SightGeometry>(
+    loads.map((load) => [load.shortName, sightGeometry(load, sightHeights, zeros)]),
+  );
+  const pathFor = (load: Load, point: Point) =>
+    sightPathM(point.dropM, point.distanceM, geometry.get(load.shortName)!);
   const convert = (load: Load, point: Point) =>
     metric === 'speedMps'
       ? point.speedMps * (imperial ? MPS_TO_FPS : 1)
@@ -45,10 +57,18 @@ export function Sparkline({
             : metric === 'payloadMomentum'
               ? point.momentumKgms * load.pelletCount * (imperial ? KGMS_TO_LBFTS : 1)
               : metric === 'dropM'
-                ? point.dropM * (imperial ? 1 / IN_TO_M : 100)
+                ? point.dropM * linear
                 : metric === 'timeS'
                   ? point.timeS
-                  : point.spinDriftM * (imperial ? 1 / IN_TO_M : 100);
+                  : metric === 'spinDriftM'
+                    ? point.spinDriftM * linear
+                    : metric === 'windDriftM'
+                      ? point.windDriftM * linear
+                      : metric === 'windageM'
+                        ? (point.spinDriftM + point.windDriftM) * linear
+                        : metric === 'sightPathM'
+                          ? pathFor(load, point) * linear
+                          : holdoverMoa(pathFor(load, point), point.distanceM);
 
   const series = loads.map((load, index) => ({
     load,
@@ -71,6 +91,16 @@ export function Sparkline({
   const selectedX = x(selectedM);
   const selectedPoint = pointAt(selectedLoad.points, selectedM)!;
   const selectedY = y(convert(selectedLoad, selectedPoint));
+  const selectedSeries = series.find((item) => item.load.shortName === selectedLoad.shortName)!;
+  const areaPath =
+    selectedLoad.points
+      .map(
+        (point, index) =>
+          `${index ? 'L' : 'M'} ${x(point.distanceM)} ${y(selectedSeries.values[index])}`,
+      )
+      .join(' ') +
+    ` L ${x(selectedLoad.points.at(-1)!.distanceM)} ${bottom}` +
+    ` L ${x(selectedLoad.points[0].distanceM)} ${bottom} Z`;
   const xUnit = imperial ? 'yd' : 'm';
   const yUnit =
     metric === 'speedMps'
@@ -87,10 +117,19 @@ export function Sparkline({
             : 'kg·m/s'
           : metric === 'timeS'
             ? 's'
-            : imperial
-              ? 'in'
-              : 'cm';
-  const digits = metric === 'dropM' || metric === 'spinDriftM' || metric === 'timeS' ? 3 : 1;
+            : metric === 'holdoverMoa'
+              ? 'MOA'
+              : imperial
+                ? 'in'
+                : 'cm';
+  const preciseMetric =
+    metric === 'dropM' ||
+    metric === 'spinDriftM' ||
+    metric === 'windDriftM' ||
+    metric === 'windageM' ||
+    metric === 'sightPathM' ||
+    metric === 'timeS';
+  const digits = preciseMetric ? 3 : 1;
   const choose = (event: React.PointerEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const px = ((event.clientX - rect.left) / rect.width) * 1000;
@@ -106,6 +145,13 @@ export function Sparkline({
         role="img"
         aria-label={`Interactive ${metric} chart`}
       >
+        <defs>
+          <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path className="chart-area" d={areaPath} />
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <g key={`y${f}`}>
             <line
@@ -116,9 +162,7 @@ export function Sparkline({
               y2={top + height * f}
             />
             <text className="tick" x={left - 10} y={top + height * f + 3} textAnchor="end">
-              {(max - span * f).toFixed(
-                metric === 'dropM' || metric === 'spinDriftM' || metric === 'timeS' ? 2 : 0,
-              )}
+              {formatNumber(max - span * f, preciseMetric ? 2 : 0)}
             </text>
           </g>
         ))}
@@ -132,7 +176,7 @@ export function Sparkline({
               y2={bottom}
             />
             <text className="tick" x={left + width * f} y={bottom + 20} textAnchor="middle">
-              {(xMax * f * (imperial ? M_TO_YD : 1)).toFixed(0)}
+              {formatNumber(xMax * f * (imperial ? M_TO_YD : 1), 0)}
             </text>
           </g>
         ))}
@@ -149,6 +193,7 @@ export function Sparkline({
             />
           );
         })}
+        <rect className="chart-frame" x={left} y={top} width={width} height={height} />
         <line className="crosshair" x1={selectedX} x2={selectedX} y1={top} y2={bottom} />
         <circle className="chart-point" cx={selectedX} cy={selectedY} r="5" />
         <text className="axis-label" x={(left + right) / 2} y="282" textAnchor="middle">
@@ -163,12 +208,7 @@ export function Sparkline({
         </text>
       </svg>
       <div className="chart-readout">
-        <strong>
-          {selectedM * (imperial ? M_TO_YD : 1) >= 10
-            ? (selectedM * (imperial ? M_TO_YD : 1)).toFixed(1)
-            : (selectedM * (imperial ? M_TO_YD : 1)).toFixed(2)}{' '}
-          {xUnit}
-        </strong>
+        <strong>{formatDistance(selectedM * (imperial ? M_TO_YD : 1), xUnit)}</strong>
         <div>
           {series.map(({ load, color }) => {
             const point = pointAt(load.points, selectedM)!;
@@ -178,15 +218,15 @@ export function Sparkline({
                 key={load.shortName}
               >
                 <i style={{ background: color }} />
-                {load.shortName}: {convert(load, point).toFixed(digits)} {yUnit}
+                {load.shortName}: {formatNumber(convert(load, point), digits)} {yUnit}
               </span>
             );
           })}
         </div>
       </div>
       <p className="chart-hint">
-        Move across the chart or click to inspect every load at an exact distance. Summary cards
-        follow the selected point.
+        Move across the chart or click to inspect every load at an exact distance; the readout
+        follows the selected point.
       </p>
     </div>
   );

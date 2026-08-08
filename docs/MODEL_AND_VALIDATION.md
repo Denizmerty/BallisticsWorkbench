@@ -4,7 +4,9 @@
 
 Ballistics Workbench calculates point-mass external trajectories for G1, G7, and spherical
 projectiles. It reports velocity, energy, momentum, flight time, vertical displacement, Mach
-number, maximum point-blank range, optimized zero, and an empirical rifle spin-drift estimate.
+number, maximum point-blank range, optimized zero, integrated crosswind drift, and an empirical
+rifle spin-drift estimate, along with the combined total windage. Given a sight-in zero it also
+reports the bullet path relative to the line of sight and the elevation holdover in MOA and mil.
 
 The engine integrates each trajectory numerically. It does not interpolate a precomputed range
 card.
@@ -16,10 +18,10 @@ The atmosphere model derives moist-air density, dynamic viscosity, and local spe
 - temperature;
 - station pressure;
 - relative humidity; and
-- headwind or tailwind.
+- headwind or tailwind, and crosswind.
 
-Pressure and altitude controls are synchronized using the ICAO troposphere relationship. Wind is
-applied through air-relative projectile velocity.
+Pressure and altitude controls are synchronized using the ICAO troposphere relationship. Both wind
+components are applied through air-relative projectile velocity.
 
 ## Drag models
 
@@ -45,8 +47,18 @@ pellet-to-pellet interaction, buffering, and pattern spread are outside the mode
 ## Trajectory integration
 
 The engine advances a shared point-mass state with fourth-order Runge–Kutta integration in
-horizontal distance. Gravity and aerodynamic deceleration are evaluated within each integration
-step. Kinetic energy and momentum are derived from the integrated velocity.
+horizontal distance. The state is three-dimensional — vertical position and drop, and lateral
+position for wind drift — so gravity, aerodynamic deceleration, and wind are all evaluated within
+each integration step. Kinetic energy and momentum are derived from the integrated velocity.
+
+Wind is supplied as separate headwind and crosswind components and enters the model through the
+air-relative velocity `v_rel = v_ground − v_wind`. Drag always acts opposite `v_rel`, so a
+crosswind produces a lateral acceleration and genuine downrange drift rather than a post-hoc
+correction. Positive crosswind blows from the shooter's left to right and drifts the projectile to
+the right; with no crosswind the lateral state remains exactly zero and the solution reduces to the
+vertical-plane trajectory. Integrated wind drift agrees with the classical point-mass "lag time"
+approximation, `drift ≈ crosswind × (time_of_flight − range / muzzle_velocity)`, to within a few
+percent.
 
 For multi-projectile payloads, the reported payload energy and momentum are scalar arithmetic
 totals:
@@ -68,6 +80,28 @@ The maximum point-blank range calculation includes:
 
 The optimized zero is selected so that the calculated trajectory remains within one-half of the
 vital-zone diameter for the greatest possible distance.
+
+## Sight-in zero and holdover
+
+Separately from the optimized MPBR zero, each firearm profile carries a user-set **zero range** —
+the distance at which the sight is actually zeroed. Using that zero, the bore-to-sight offset, and
+the integrated bore drop, the engine places the trajectory relative to the line of sight by the
+same small-angle superposition used for MPBR:
+
+```text
+path(x) = −drop(x) − sight_height + (drop(zero) + sight_height) × x / zero
+```
+
+`path(x)` is positive above the line of sight and negative below it; it equals `−sight_height` at
+the muzzle and zero at the sight-in distance. The elevation holdover (come-up) is the angle
+subtended by the path deficit, reported in both minutes of angle and milliradians:
+
+```text
+holdover = −path(x) / x            (radians; positive means hold up)
+MOA = holdover × 3437.75           mil = holdover × 1000
+```
+
+Because holdover is angular, it is independent of the metric or imperial unit selection.
 
 ## Spin drift
 
@@ -98,11 +132,13 @@ been compared with an independent adaptive-RK4 implementation under matched dry-
 The calculation is a point-mass engineering model rather than CFD or a six-degree-of-freedom
 simulation. It does not explicitly solve:
 
-- launch yaw or aerodynamic jump;
+- launch yaw or aerodynamic jump (including the jump a crosswind induces at the muzzle);
 - choke interaction or projectile deformation;
 - pellet-to-pellet aerodynamic interaction or pattern spread;
-- true crosswind drift or Coriolis effect; or
+- the Coriolis effect; or
 - dynamic instability.
+
+Crosswind drift itself is now integrated as a point-mass effect rather than omitted.
 
 Slug coefficients are fitted from limited measurements, and uncertainty increases outside the
 measured range and during transonic flight. Always confirm calculated results with real-world

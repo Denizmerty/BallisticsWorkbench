@@ -12,13 +12,17 @@ with React, TypeScript, and Electron.
 - G1 and G7 reference drag models
 - Reynolds- and Mach-dependent drag for spherical projectiles
 - Fourth-order Runge–Kutta trajectory integration
-- Temperature, station pressure, humidity, altitude, and headwind inputs
+- Temperature, station pressure, humidity, altitude, headwind, and crosswind inputs
+- Three-dimensional trajectory integration with true crosswind drift and combined windage
 - Independent shotgun and rifle muzzle-velocity and sight-height profiles
 - Maximum point-blank range and optimized zero calculations
+- Sight-in zero with bullet path and elevation holdover in MOA and mil
 - Rifle spin-drift estimates with twist rate and direction
 - Per-projectile or per-pellet values alongside complete-payload totals
 - Interactive all-load charts and detailed range tables
-- Metric and imperial units, light and dark themes, and CSV export
+- Sortable all-load calculator, one-click summary copy, and CSV export
+- Keyboard navigation for tabs and load selection
+- Metric and imperial units, light and dark themes
 - Persistent custom G1, G7, and spherical loads
 
 The six built-in loads are:
@@ -100,14 +104,32 @@ npm run package:win
 
 The NSIS installer is written to `outputs\installer\`.
 
+For a complete release build that locates Visual Studio, compiles the native and desktop targets,
+runs both test suites, and creates the installer, run:
+
+```powershell
+.\scripts\build-release.cmd
+```
+
+Add `--run` to launch the unpacked application after a successful build:
+
+```powershell
+.\scripts\build-release.cmd --run
+```
+
 ## Basic usage
 
 1. Set the maximum range and atmospheric conditions.
 2. Adjust the shotgun or rifle firearm profile when chronograph or sight-height data is available.
 3. Select a built-in or custom load.
 4. Use **Overview** to inspect all trajectories at a chosen distance.
-5. Use **Range Table** for one load or **All-load Calculator** to compare every active load.
-6. Export the current range table with **Ctrl+E**. Reset atmospheric inputs with **Ctrl+R**.
+5. Use **Range Table** for one load or **All-load Calculator** to compare every active load; click a
+   column heading in the calculator to sort by it.
+6. Export the current range table with **Ctrl+E** or copy the selected load's summary to the
+   clipboard with **Copy summary**. Reset atmospheric inputs with **Ctrl+R**.
+
+Keyboard shortcuts: number keys **1**–**4** switch between Overview, Range Table, All-load
+Calculator, and Help; the **arrow keys** (or **[** and **]**) cycle the selected load.
 
 For buckshot, trajectory values describe one pellet. Payload energy and momentum are arithmetic
 totals across all pellets; they do not represent the payload as one projectile.

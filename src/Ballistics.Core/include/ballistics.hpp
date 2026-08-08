@@ -36,12 +36,17 @@ struct Atmosphere {
   double station_pressure_hpa{};
   double relative_humidity_percent{};
   double headwind_mps{};
+  double crosswind_mps{};
   double density_kg_m3{};
   double speed_of_sound_mps{};
   double dynamic_viscosity_pa_s{};
 
+  // headwind_mps is positive blowing toward the shooter; crosswind_mps is positive blowing from
+  // the shooter's left to right, deflecting the projectile to the right (matching the spin-drift
+  // sign convention).
   [[nodiscard]] static Atmosphere create(double temperature_c, double station_pressure_hpa,
-                                         double relative_humidity_percent, double headwind_mps);
+                                         double relative_humidity_percent, double headwind_mps,
+                                         double crosswind_mps = 0.0);
 };
 
 struct BallisticPoint {
@@ -51,6 +56,7 @@ struct BallisticPoint {
   double momentum_kgms{};
   double time_s{};
   double drop_m{};
+  double wind_drift_m{};
 };
 
 struct AerodynamicDiagnostics {
@@ -67,6 +73,7 @@ struct Trajectory {
   std::vector<double> momenta;
   std::vector<double> times;
   std::vector<double> drops;
+  std::vector<double> wind_drifts;
   double mass_kg{};
 
   [[nodiscard]] BallisticPoint point_at(double distance_m) const;

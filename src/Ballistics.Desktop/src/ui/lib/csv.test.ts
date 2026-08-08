@@ -11,6 +11,7 @@ const point = (distanceM: number, speedMps: number): Point => ({
   dropM: distanceM * distanceM * 1e-5,
   mach: speedMps / 340,
   spinDriftM: distanceM * 1e-4,
+  windDriftM: distanceM * 5e-4,
 });
 
 const rifle: Load = {
@@ -37,9 +38,12 @@ const inputs: Inputs = {
   humidityPercent: 50,
   altitudeM: 0,
   headwindMps: 0,
+  crosswindMps: 0,
   vitalZoneM: 0.15,
   shotgunSightM: 0.025,
   rifleSightM: 0.04,
+  shotgunZeroM: 50,
+  rifleZeroM: 100,
   shotgunMvMultiplier: 1,
   rifleMvMultiplier: 1,
   rifleTwistInches: 10,
@@ -86,5 +90,20 @@ describe('buildCsv', () => {
     const csv = buildCsv(result, inputs, 50, false);
     expect(csv).toContain('Distance (m)');
     expect(csv).toContain('Velocity (m/s)');
+  });
+
+  it('includes wind drift, total windage, and the crosswind atmosphere line', () => {
+    const csv = buildCsv(result, { ...inputs, crosswindMps: 4 }, 50, false);
+    expect(csv).toContain('Wind drift (cm)');
+    expect(csv).toContain('Total windage (cm)');
+    expect(csv).toContain('crosswind=4.000 m/s');
+  });
+
+  it('includes sight path, holdover columns, and the zeroing metadata', () => {
+    const csv = buildCsv(result, { ...inputs, rifleZeroM: 200 }, 50, false);
+    expect(csv).toContain('Sight path (cm)');
+    expect(csv).toContain('Holdover (MOA)');
+    expect(csv).toContain('Holdover (mil)');
+    expect(csv).toContain('rifle zero=200.000 m');
   });
 });

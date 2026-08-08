@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CustomDraft, Inputs } from '../types';
-import { validateCustomLoad, validateInputs } from './validation';
+import { fieldErrors, validateCustomLoad, validateInputs } from './validation';
 
 const validInputs: Inputs = {
   distanceM: 100,
@@ -9,9 +9,12 @@ const validInputs: Inputs = {
   humidityPercent: 50,
   altitudeM: 0,
   headwindMps: 0,
+  crosswindMps: 0,
   vitalZoneM: 0.15,
   shotgunSightM: 0.025,
   rifleSightM: 0.04,
+  shotgunZeroM: 50,
+  rifleZeroM: 100,
   shotgunMvMultiplier: 1,
   rifleMvMultiplier: 1,
   rifleTwistInches: 10,
@@ -51,6 +54,23 @@ describe('validateInputs', () => {
   it('reports every violated field', () => {
     const errors = validateInputs({ ...validInputs, humidityPercent: 200, headwindMps: 500 });
     expect(errors).toHaveLength(2);
+  });
+});
+
+describe('fieldErrors', () => {
+  it('returns no entries for a valid input set', () => {
+    expect(fieldErrors(validInputs)).toEqual({});
+  });
+
+  it('keys messages by the exact offending field', () => {
+    const errors = fieldErrors({ ...validInputs, humidityPercent: 200, rifleTwistInches: 1 });
+    expect(Object.keys(errors).sort()).toEqual(['humidityPercent', 'rifleTwistInches']);
+    expect(errors.humidityPercent).toContain('Humidity');
+  });
+
+  it('agrees with validateInputs on the number of violations', () => {
+    const broken = { ...validInputs, temperatureC: 999, pressureHpa: NaN };
+    expect(Object.keys(fieldErrors(broken))).toHaveLength(validateInputs(broken).length);
   });
 });
 

@@ -11,6 +11,7 @@ const point = (distanceM: number, overrides: Partial<Point> = {}): Point => ({
   dropM: distanceM / 1000,
   mach: distanceM / 340,
   spinDriftM: distanceM / 500,
+  windDriftM: distanceM / 250,
   ...overrides,
 });
 

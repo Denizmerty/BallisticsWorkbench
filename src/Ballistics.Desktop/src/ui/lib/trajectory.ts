@@ -19,6 +19,7 @@ export function pointAt(points: Point[], distance: number): Point | undefined {
     dropM: n('dropM'),
     mach: n('mach'),
     spinDriftM: n('spinDriftM'),
+    windDriftM: n('windDriftM'),
     cd: a.cd === undefined ? undefined : n('cd'),
     reynolds: a.reynolds === undefined ? undefined : n('reynolds'),
   };

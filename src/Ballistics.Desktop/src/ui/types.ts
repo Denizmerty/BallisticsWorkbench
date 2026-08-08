@@ -5,9 +5,12 @@ export type Inputs = {
   humidityPercent: number;
   altitudeM: number;
   headwindMps: number;
+  crosswindMps: number;
   vitalZoneM: number;
   shotgunSightM: number;
   rifleSightM: number;
+  shotgunZeroM: number;
+  rifleZeroM: number;
   shotgunMvMultiplier: number;
   rifleMvMultiplier: number;
   rifleTwistInches: number;
@@ -34,6 +37,7 @@ export type Point = {
   dropM: number;
   mach: number;
   spinDriftM: number;
+  windDriftM: number;
   cd?: number;
   reynolds?: number;
 };
@@ -67,7 +71,11 @@ export type Metric =
   | 'payloadMomentum'
   | 'dropM'
   | 'timeS'
-  | 'spinDriftM';
+  | 'spinDriftM'
+  | 'windDriftM'
+  | 'windageM'
+  | 'sightPathM'
+  | 'holdoverMoa';
 export type CustomDraft = {
   name: string;
   drag: string;
