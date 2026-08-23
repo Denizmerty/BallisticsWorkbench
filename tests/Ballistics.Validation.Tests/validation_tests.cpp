@@ -907,10 +907,9 @@ int main(
         for (const auto& scenario_value : array_field(root, "scenarios"))
         {
             const auto& scenario = scenario_value.as_object();
-            ScenarioReport report {
-                string_field(scenario, "id"),
-                string_field(scenario, "regime")
-            };
+            ScenarioReport report;
+            report.id = string_field(scenario, "id");
+            report.regime = string_field(scenario, "regime");
             const auto& tolerances = object_field(scenario, "tolerances");
             const auto velocity_tolerance = number_field(tolerances, "velocityRelative");
             const auto time_tolerance = number_field(tolerances, "timeRelative");
@@ -1156,13 +1155,12 @@ int main(
                 manufacturer_atmosphere,
                 maximum_distance_m
             );
-            ManufacturerLoadReport report {
-                built_ins[definition.built_in_index].provenance.id,
-                definition.source_dataset_ids,
-                definition.source_qualification,
-                definition.parameter_status,
-                definition.velocity_tolerance
-            };
+            ManufacturerLoadReport report;
+            report.load_id = built_ins[definition.built_in_index].provenance.id;
+            report.source_dataset_ids = definition.source_dataset_ids;
+            report.source_qualification = definition.source_qualification;
+            report.parameter_status = definition.parameter_status;
+            report.tolerance_velocity_relative = definition.velocity_tolerance;
             if (trajectory.termination != TrajectoryTermination::requested_distance)
             {
                 failures.push_back(report.load_id + " did not cover its manufacturer table range");

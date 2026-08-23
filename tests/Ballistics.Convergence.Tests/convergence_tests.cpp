@@ -245,7 +245,10 @@ ScenarioReport evaluate_scenario(
     const std::array<std::pair<std::string_view, double>, 3> levels {
         { { "production", 1.0 }, { "half", 0.5 }, { "tenth", 0.1 } }
     };
-    ScenarioReport report { definition.id, definition.maximum_distance_m, distances.size() };
+    ScenarioReport report;
+    report.id = definition.id;
+    report.maximum_distance_m = definition.maximum_distance_m;
+    report.comparison_samples = distances.size();
     std::vector<ballistics::Trajectory> trajectories;
     trajectories.reserve(levels.size());
     for (const auto& [id, scale] : levels)
@@ -265,7 +268,11 @@ ScenarioReport evaluate_scenario(
                 definition.id + " " + std::string(id) + " solve did not cover its range"
             );
         }
-        ToleranceRow row { std::string(id), scale, configuration, trajectory.solver };
+        ToleranceRow row;
+        row.id = id;
+        row.tolerance_scale = scale;
+        row.configuration = configuration;
+        row.diagnostics = trajectory.solver;
         for (const auto distance_m : distances)
         {
             row.error_to_reference.include(difference(

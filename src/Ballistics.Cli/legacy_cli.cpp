@@ -225,26 +225,37 @@ ballistics::protocol::Request legacy_request(
         bc_kind = "user-entered " + drag + " BC";
     }
 
-    DragDefinition drag_definition = drag == "Sphere"
-        ? DragDefinition { SphereDrag { diameter, density } }
-        : DragDefinition { ReferenceBcDrag {
-              drag == "G7" ? ReferenceDragCurve::g7 : ReferenceDragCurve::g1,
-              ConstantBallisticCoefficient { ballistic_coefficient } } };
-    std::optional<ProjectileGeometry> geometry;
+    auto& custom_load = request.custom_loads.emplace_back();
+    custom_load.definition.name = custom_name;
+    custom_load.definition.short_name = custom_name;
+    custom_load.definition.mass_kg = mass;
     if (length > 0.0 && bullet_diameter > 0.0)
     {
-        geometry = ProjectileGeometry { length, bullet_diameter };
+        custom_load.definition.geometry = ProjectileGeometry { length, bullet_diameter };
     }
-    FirearmConfiguration firearm {
-        group == "rifle" ? FirearmGroup::rifle : FirearmGroup::shotgun,
-        twist > 0.0 ? std::optional<double> { twist } : std::nullopt
-    };
-    request.custom_loads.push_back(
-        { { custom_name, custom_name, mass, geometry, std::move(drag_definition) },
-          { muzzle_velocity, static_cast<int>(count) },
-          firearm,
-          { true, "custom:legacy", std::move(bc_kind) } }
-    );
+
+    if (drag == "Sphere")
+    {
+        auto& sphere = custom_load.definition.drag.emplace<SphereDrag>();
+        sphere.diameter_m = diameter;
+        sphere.material_density_kg_m3 = density;
+    }
+    else
+    {
+        auto& reference = std::get<ReferenceBcDrag>(custom_load.definition.drag);
+        reference.curve = drag == "G7" ? ReferenceDragCurve::g7 : ReferenceDragCurve::g1;
+        std::get<ConstantBallisticCoefficient>(reference.coefficient).value = ballistic_coefficient;
+    }
+    custom_load.ammunition.muzzle_velocity_mps = muzzle_velocity;
+    custom_load.ammunition.payload_count = static_cast<int>(count);
+    custom_load.firearm.group = group == "rifle" ? FirearmGroup::rifle : FirearmGroup::shotgun;
+    if (twist > 0.0)
+    {
+        custom_load.firearm.twist_rate_inches = twist;
+    }
+    custom_load.provenance.is_custom = true;
+    custom_load.provenance.id = "custom:legacy";
+    custom_load.provenance.drag_description = std::move(bc_kind);
     return request;
 }
 

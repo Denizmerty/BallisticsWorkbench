@@ -311,5 +311,6 @@ export function renderSourceEvidence(manifest, inventory) {
     renderBuiltInSection(lines, manifest, inventory);
     renderOpenGapIndex(lines, inventory);
     renderDatasetSection(lines, manifest);
+    while (lines.at(-1) === '') lines.pop();
     return `${lines.join('\n')}\n`;
 }

@@ -42,9 +42,9 @@ void expect_true(
     }
 }
 
-const ballistics::TrajectorySample& require_sample(
+ballistics::TrajectorySample require_sample(
     const std::string& label,
-    const std::optional<ballistics::TrajectorySample>& sample
+    std::optional<ballistics::TrajectorySample> sample
 )
 {
     if (!sample)
@@ -52,7 +52,7 @@ const ballistics::TrajectorySample& require_sample(
         std::cerr << label << ": sample unavailable\n";
         std::exit(1);
     }
-    return *sample;
+    return sample.value();
 }
 
 double legacy_cubic_bezier(

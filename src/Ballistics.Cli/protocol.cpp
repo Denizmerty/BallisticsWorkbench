@@ -1470,7 +1470,11 @@ class RequestReader
             {
                 continue;
             }
-            if (*first == *second || !std::isfinite(*coefficient) || std::abs(*coefficient) >= 1.0)
+            const auto first_value = first.value();
+            const auto second_value = second.value();
+            const auto coefficient_value = coefficient.value();
+            if (first_value == second_value || !std::isfinite(coefficient_value) ||
+                std::abs(coefficient_value) >= 1.0)
             {
                 issue(
                     "scenario.uncertainty.correlation.invalid",
@@ -1480,8 +1484,8 @@ class RequestReader
                 );
                 continue;
             }
-            auto first_index = static_cast<std::size_t>(*first);
-            auto second_index = static_cast<std::size_t>(*second);
+            auto first_index = static_cast<std::size_t>(first_value);
+            auto second_index = static_cast<std::size_t>(second_value);
             if (second_index < first_index)
                 std::swap(first_index, second_index);
             if (!pairs.emplace(first_index, second_index).second)
@@ -1493,7 +1497,7 @@ class RequestReader
                 );
                 continue;
             }
-            correlations.push_back({ *first, *second, *coefficient });
+            correlations.push_back({ first_value, second_value, coefficient_value });
         }
     }
 
