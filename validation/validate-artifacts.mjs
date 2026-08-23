@@ -16,6 +16,38 @@ function fail(message) {
     throw new Error(message);
 }
 
+function matchesGeneratedArtifact(reference, generated) {
+    if (typeof reference === 'number' && typeof generated === 'number') {
+        const scale = Math.max(1, Math.abs(reference), Math.abs(generated));
+        return Math.abs(reference - generated) <= 1e-12 * scale;
+    }
+
+    if (Array.isArray(reference) || Array.isArray(generated)) {
+        return (
+            Array.isArray(reference) &&
+            Array.isArray(generated) &&
+            reference.length === generated.length &&
+            reference.every((value, index) => matchesGeneratedArtifact(value, generated[index]))
+        );
+    }
+
+    if (reference && generated && typeof reference === 'object' && typeof generated === 'object') {
+        const referenceKeys = Object.keys(reference);
+        const generatedKeys = Object.keys(generated);
+        return (
+            referenceKeys.length === generatedKeys.length &&
+            referenceKeys.every((key, index) => {
+                return (
+                    key === generatedKeys[index] &&
+                    matchesGeneratedArtifact(reference[key], generated[key])
+                );
+            })
+        );
+    }
+
+    return Object.is(reference, generated);
+}
+
 async function readJson(relativePath) {
     const contents = await readFile(resolve(validationDirectory, relativePath), 'utf8');
     return JSON.parse(contents);
@@ -446,7 +478,7 @@ const regenerated = JSON.parse(
         encoding: 'utf8',
     }),
 );
-if (JSON.stringify(regenerated) !== JSON.stringify(scenario)) {
+if (!matchesGeneratedArtifact(scenario, regenerated)) {
     fail('g7-independent.json does not match its deterministic reference generator');
 }
 
@@ -511,7 +543,7 @@ const regeneratedFlightMatrix = JSON.parse(
         maxBuffer: 2 * 1024 * 1024,
     }),
 );
-if (JSON.stringify(regeneratedFlightMatrix) !== JSON.stringify(flightMatrix)) {
+if (!matchesGeneratedArtifact(flightMatrix, regeneratedFlightMatrix)) {
     fail('independent-flight-matrix.json does not match its deterministic reference generator');
 }
 

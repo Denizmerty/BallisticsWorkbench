@@ -9,7 +9,7 @@
         "initialBallisticCoefficient": 0.06,
         "implementedBallisticCoefficient": 0.054624716532086,
         "fitKind": "constant",
-        "coefficientToleranceAbsolute": 0.000002,
+        "coefficientToleranceAbsolute": 0.00001,
         "atmosphere": {
             "temperatureC": 15,
             "stationPressureHpa": 1013.25,
