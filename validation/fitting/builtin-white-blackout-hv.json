@@ -1,0 +1,59 @@
+{
+    "schemaVersion": 1,
+    "id": "builtin-white-blackout-hv-effective-g1",
+    "model": "G1",
+    "parameters": {
+        "loadId": "builtin:white-blackout-hv",
+        "massKg": 0.028,
+        "muzzleVelocityMps": 575,
+        "initialBallisticCoefficient": 0.06,
+        "implementedBallisticCoefficient": 0.054624716532086,
+        "fitKind": "constant",
+        "coefficientToleranceAbsolute": 0.000002,
+        "atmosphere": {
+            "temperatureC": 15,
+            "stationPressureHpa": 1013.25,
+            "relativeHumidityPercent": 0,
+            "headwindMps": 0,
+            "crosswindMps": 0,
+            "qualification": "Assumed ICAO-like sea-level atmosphere because the publications do not report test conditions."
+        },
+        "parameterStatus": "fitted_to_same_table",
+        "evidenceLevel": "calibration_only",
+        "uncertaintyQualification": "The publications round velocity to whole metres per second and report no measurement or calculation uncertainty. The 1 m/s value is a fitting weight and is not a claimed source standard deviation.",
+        "assumptions": [
+            "The published V1 value of 575 m/s supplies the launch velocity and is excluded from the fitted observations.",
+            "The 33 m and 50 m values come from different non-primary publications and are both calibration inputs.",
+            "No physically separate holdout observation is available."
+        ]
+    },
+    "observations": [
+        {
+            "distanceM": 33,
+            "velocityMps": 443,
+            "standardDeviationMps": 1,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-attributed-bp-white-blackout-hv-2018",
+            "lot": null,
+            "barrel": null
+        },
+        {
+            "distanceM": 50,
+            "velocityMps": 384,
+            "standardDeviationMps": 1,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "secondary-bp-white-blackout-hv-caccia-magazine-2019",
+            "lot": null,
+            "barrel": null
+        }
+    ],
+    "method": {
+        "implementation": "calibrate_reference_ballistic_coefficient",
+        "objective": "Minimize the sum of squared velocity residuals divided by the declared fitting-weight variance using calibration-role observations only.",
+        "optimizer": "Levenberg-Marquardt over log ballistic coefficient",
+        "version": "2026.08.11",
+        "randomSeed": null
+    }
+}

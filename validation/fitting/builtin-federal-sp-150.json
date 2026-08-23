@@ -1,0 +1,90 @@
+{
+    "schemaVersion": 1,
+    "id": "builtin-federal-sp-150-effective-g1",
+    "model": "G1",
+    "parameters": {
+        "loadId": "builtin:federal-sp-150",
+        "massKg": 0.0097198365,
+        "muzzleVelocityMps": 859.536,
+        "initialBallisticCoefficient": 0.32,
+        "implementedBallisticCoefficient": 0.312368144835017,
+        "fitKind": "constant",
+        "coefficientToleranceAbsolute": 0.000002,
+        "atmosphere": {
+            "temperatureC": 15,
+            "stationPressureHpa": 1013.25,
+            "relativeHumidityPercent": 0,
+            "headwindMps": 0,
+            "crosswindMps": 0,
+            "qualification": "Assumed ICAO-like sea-level atmosphere because the manufacturer table does not report test conditions."
+        },
+        "parameterStatus": "fitted_to_same_table",
+        "evidenceLevel": "calibration_only",
+        "uncertaintyQualification": "The manufacturer table rounds velocity to whole feet per second and reports no measurement uncertainty. The published increment of 0.3048 m/s is used as a fitting weight and is not a claimed source standard deviation.",
+        "assumptions": [
+            "The published muzzle velocity of 2,820 ft/s supplies the launch velocity and is excluded from the fitted observations.",
+            "All five downrange manufacturer-table velocities are calibration inputs.",
+            "The 24-inch barrel comes from the 2019 catalog cross-check. The lot, atmosphere, sample size, and measurement method remain unreported.",
+            "No physically separate holdout observation is available."
+        ]
+    },
+    "observations": [
+        {
+            "distanceM": 91.44,
+            "velocityMps": 771.7536,
+            "standardDeviationMps": 0.3048,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-federal-308a-2022",
+            "lot": null,
+            "barrel": "24 inches (2019 catalog cross-check)"
+        },
+        {
+            "distanceM": 182.88,
+            "velocityMps": 689.2128,
+            "standardDeviationMps": 0.3048,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-federal-308a-2022",
+            "lot": null,
+            "barrel": "24 inches (2019 catalog cross-check)"
+        },
+        {
+            "distanceM": 274.32,
+            "velocityMps": 611.7336,
+            "standardDeviationMps": 0.3048,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-federal-308a-2022",
+            "lot": null,
+            "barrel": "24 inches (2019 catalog cross-check)"
+        },
+        {
+            "distanceM": 365.76,
+            "velocityMps": 539.8008,
+            "standardDeviationMps": 0.3048,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-federal-308a-2022",
+            "lot": null,
+            "barrel": "24 inches (2019 catalog cross-check)"
+        },
+        {
+            "distanceM": 457.2,
+            "velocityMps": 474.5736,
+            "standardDeviationMps": 0.3048,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-federal-308a-2022",
+            "lot": null,
+            "barrel": "24 inches (2019 catalog cross-check)"
+        }
+    ],
+    "method": {
+        "implementation": "calibrate_reference_ballistic_coefficient",
+        "objective": "Minimize the sum of squared velocity residuals divided by the declared fitting-weight variance using calibration-role observations only.",
+        "optimizer": "Levenberg-Marquardt over log ballistic coefficient",
+        "version": "2026.08.11",
+        "randomSeed": null
+    }
+}

@@ -1,0 +1,338 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/flight-matrix.schema.json",
+    "title": "Ballistics Workbench independent flight matrix",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "id",
+        "modelVersion",
+        "reference",
+        "scenarios",
+        "zeroingCases",
+        "mpbrCases"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "id": { "const": "independent-flight-matrix-rk4-v1" },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "reference": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "implementation",
+                "integrator",
+                "stepS",
+                "rangeInterpolation",
+                "dragSources",
+                "atmosphereModel",
+                "generatedAt"
+            ],
+            "properties": {
+                "implementation": { "type": "string", "minLength": 1 },
+                "integrator": { "type": "string", "minLength": 1 },
+                "stepS": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.001 },
+                "rangeInterpolation": { "type": "string", "minLength": 1 },
+                "dragSources": {
+                    "type": "array",
+                    "minItems": 3,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "minLength": 1 }
+                },
+                "atmosphereModel": { "type": "string", "minLength": 1 },
+                "generatedAt": { "type": "string", "format": "date" }
+            }
+        },
+        "scenarios": {
+            "type": "array",
+            "minItems": 13,
+            "items": { "$ref": "#/$defs/scenario" }
+        },
+        "zeroingCases": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/zeroingCase" }
+        },
+        "mpbrCases": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/mpbrCase" }
+        }
+    },
+    "$defs": {
+        "vector": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["x", "y", "z"],
+            "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "z": { "type": "number" }
+            }
+        },
+        "machCdPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mach", "dragCoefficient"],
+            "properties": {
+                "mach": { "type": "number", "minimum": 0 },
+                "dragCoefficient": { "type": "number", "exclusiveMinimum": 0 }
+            }
+        },
+        "projectile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "massKg",
+                "muzzleVelocityMps",
+                "dragModel",
+                "ballisticCoefficient",
+                "sphereDiameterM",
+                "materialDensityKgM3",
+                "dragReferenceDiameterM",
+                "machCdPoints"
+            ],
+            "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "massKg": { "type": "number", "exclusiveMinimum": 0 },
+                "muzzleVelocityMps": { "type": "number", "exclusiveMinimum": 0 },
+                "dragModel": { "enum": ["G1", "G7", "sphere", "tabulatedCd"] },
+                "ballisticCoefficient": { "type": "number", "minimum": 0 },
+                "sphereDiameterM": { "type": "number", "minimum": 0 },
+                "materialDensityKgM3": { "type": "number", "minimum": 0 },
+                "dragReferenceDiameterM": { "type": "number", "minimum": 0 },
+                "machCdPoints": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/machCdPoint" }
+                }
+            }
+        },
+        "atmosphere": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "temperatureC",
+                "stationPressureHpa",
+                "relativeHumidityPercent",
+                "headwindMps",
+                "crosswindMps",
+                "densityKgM3",
+                "speedOfSoundMps",
+                "dynamicViscosityPaS"
+            ],
+            "properties": {
+                "temperatureC": { "type": "number", "minimum": -60, "maximum": 60 },
+                "stationPressureHpa": { "type": "number", "exclusiveMinimum": 0 },
+                "relativeHumidityPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+                "headwindMps": { "type": "number" },
+                "crosswindMps": { "type": "number" },
+                "densityKgM3": { "type": "number", "exclusiveMinimum": 0 },
+                "speedOfSoundMps": { "type": "number", "exclusiveMinimum": 0 },
+                "dynamicViscosityPaS": { "type": "number", "exclusiveMinimum": 0 }
+            }
+        },
+        "launch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["elevationRad", "azimuthRad"],
+            "properties": {
+                "elevationRad": { "type": "number" },
+                "azimuthRad": { "type": "number" }
+            }
+        },
+        "trajectoryTolerances": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "positionAbsoluteM",
+                "velocityAbsoluteMps",
+                "timeAbsoluteS",
+                "scalarAbsolute",
+                "dragCoefficientAbsolute"
+            ],
+            "properties": {
+                "positionAbsoluteM": { "type": "number", "exclusiveMinimum": 0 },
+                "velocityAbsoluteMps": { "type": "number", "exclusiveMinimum": 0 },
+                "timeAbsoluteS": { "type": "number", "exclusiveMinimum": 0 },
+                "scalarAbsolute": { "type": "number", "exclusiveMinimum": 0 },
+                "dragCoefficientAbsolute": { "type": "number", "exclusiveMinimum": 0 }
+            }
+        },
+        "sample": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "timeS",
+                "positionM",
+                "groundVelocityMps",
+                "groundSpeedMps",
+                "airspeedMps",
+                "mach",
+                "dragCoefficient"
+            ],
+            "properties": {
+                "distanceM": { "type": "number", "minimum": 0 },
+                "timeS": { "type": "number", "minimum": 0 },
+                "positionM": { "$ref": "#/$defs/vector" },
+                "groundVelocityMps": { "$ref": "#/$defs/vector" },
+                "groundSpeedMps": { "type": "number", "minimum": 0 },
+                "airspeedMps": { "type": "number", "minimum": 0 },
+                "mach": { "type": "number", "minimum": 0 },
+                "dragCoefficient": { "type": "number", "exclusiveMinimum": 0 }
+            }
+        },
+        "zeroSample": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "timeS",
+                "positionM",
+                "groundVelocityMps",
+                "groundSpeedMps",
+                "airspeedMps",
+                "mach",
+                "dragCoefficient",
+                "sightPathM"
+            ],
+            "properties": {
+                "distanceM": { "type": "number", "minimum": 0 },
+                "timeS": { "type": "number", "minimum": 0 },
+                "positionM": { "$ref": "#/$defs/vector" },
+                "groundVelocityMps": { "$ref": "#/$defs/vector" },
+                "groundSpeedMps": { "type": "number", "minimum": 0 },
+                "airspeedMps": { "type": "number", "minimum": 0 },
+                "mach": { "type": "number", "minimum": 0 },
+                "dragCoefficient": { "type": "number", "exclusiveMinimum": 0 },
+                "sightPathM": { "type": "number" }
+            }
+        },
+        "scenario": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "category",
+                "projectile",
+                "atmosphere",
+                "launch",
+                "maximumDistanceM",
+                "tolerances",
+                "samples"
+            ],
+            "properties": {
+                "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+                "category": {
+                    "enum": [
+                        "environment",
+                        "wind_vector",
+                        "geometry",
+                        "low_velocity",
+                        "tabulated_drag",
+                        "sphere",
+                        "builtin_load"
+                    ]
+                },
+                "projectile": { "$ref": "#/$defs/projectile" },
+                "atmosphere": { "$ref": "#/$defs/atmosphere" },
+                "launch": { "$ref": "#/$defs/launch" },
+                "maximumDistanceM": { "type": "number", "exclusiveMinimum": 0 },
+                "tolerances": { "$ref": "#/$defs/trajectoryTolerances" },
+                "samples": {
+                    "type": "array",
+                    "minItems": 5,
+                    "items": { "$ref": "#/$defs/sample" }
+                }
+            }
+        },
+        "zeroingCase": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "projectile",
+                "atmosphere",
+                "zeroRangeM",
+                "sightHeightM",
+                "maximumDistanceM",
+                "boreElevationRad",
+                "zeroResidualM",
+                "tolerances",
+                "samples"
+            ],
+            "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "projectile": { "$ref": "#/$defs/projectile" },
+                "atmosphere": { "$ref": "#/$defs/atmosphere" },
+                "zeroRangeM": { "type": "number", "exclusiveMinimum": 0 },
+                "sightHeightM": { "type": "number", "minimum": 0 },
+                "maximumDistanceM": { "type": "number", "exclusiveMinimum": 0 },
+                "boreElevationRad": { "type": "number" },
+                "zeroResidualM": { "type": "number" },
+                "tolerances": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "boreAngleAbsoluteRad",
+                        "pathAbsoluteM",
+                        "timeAbsoluteS",
+                        "velocityAbsoluteMps"
+                    ],
+                    "properties": {
+                        "boreAngleAbsoluteRad": { "type": "number", "exclusiveMinimum": 0 },
+                        "pathAbsoluteM": { "type": "number", "exclusiveMinimum": 0 },
+                        "timeAbsoluteS": { "type": "number", "exclusiveMinimum": 0 },
+                        "velocityAbsoluteMps": { "type": "number", "exclusiveMinimum": 0 }
+                    }
+                },
+                "samples": {
+                    "type": "array",
+                    "minItems": 6,
+                    "items": { "$ref": "#/$defs/zeroSample" }
+                }
+            }
+        },
+        "mpbrCase": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "projectile",
+                "atmosphere",
+                "sightHeightM",
+                "vitalZoneDiameterM",
+                "maximumDistanceM",
+                "boreElevationRad",
+                "maximumPathM",
+                "zeroM",
+                "mpbrM",
+                "tolerances"
+            ],
+            "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "projectile": { "$ref": "#/$defs/projectile" },
+                "atmosphere": { "$ref": "#/$defs/atmosphere" },
+                "sightHeightM": { "type": "number", "minimum": 0 },
+                "vitalZoneDiameterM": { "type": "number", "exclusiveMinimum": 0 },
+                "maximumDistanceM": { "type": "number", "exclusiveMinimum": 0 },
+                "boreElevationRad": { "type": "number" },
+                "maximumPathM": { "type": "number" },
+                "zeroM": { "type": "number", "exclusiveMinimum": 0 },
+                "mpbrM": { "type": "number", "exclusiveMinimum": 0 },
+                "tolerances": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["zeroAbsoluteM", "mpbrAbsoluteM", "maximumPathAbsoluteM"],
+                    "properties": {
+                        "zeroAbsoluteM": { "type": "number", "exclusiveMinimum": 0 },
+                        "mpbrAbsoluteM": { "type": "number", "exclusiveMinimum": 0 },
+                        "maximumPathAbsoluteM": { "type": "number", "exclusiveMinimum": 0 }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,129 @@
+{
+    "protocolVersion": 2,
+    "requestId": "fixture-multiple-loads",
+    "scenario": {
+        "displayDistanceM": 100,
+        "solutionHorizonM": 500,
+        "vitalZoneM": 0.2,
+        "atmosphere": {
+            "temperatureC": 15,
+            "stationPressureHpa": 1013.25,
+            "relativeHumidityPercent": 50,
+            "headwindMps": 0,
+            "crosswindMps": 0
+        },
+        "firearms": {
+            "shotgun": {
+                "sightHeightM": 0.025,
+                "zeroRangeM": 50,
+                "muzzleVelocityMultiplier": 1
+            },
+            "rifle": {
+                "sightHeightM": 0.04,
+                "zeroRangeM": 100,
+                "muzzleVelocityMultiplier": 1,
+                "twistInches": 10,
+                "twistDirection": 1
+            }
+        },
+        "uncertainty": {
+            "method": "firstOrder",
+            "sampleCount": 1000,
+            "seed": 1113017667,
+            "correlations": [],
+            "shotgunMuzzleVelocityStandardDeviationMps": 2,
+            "rifleMuzzleVelocityStandardDeviationMps": 3,
+            "dragRelativeStandardDeviation": 0.02,
+            "temperatureStandardDeviationC": 0,
+            "stationPressureStandardDeviationHpa": 0,
+            "headwindStandardDeviationMps": 0,
+            "crosswindStandardDeviationMps": 0,
+            "shotgunZeroRangeStandardDeviationM": 0,
+            "rifleZeroRangeStandardDeviationM": 0
+        }
+    },
+    "customLoads": [
+        {
+            "id": "custom:fixture-g7",
+            "name": "G7 Çalışma",
+            "firearmGroup": "rifle",
+            "muzzleVelocityMps": 800,
+            "pelletCount": 1,
+            "massKg": 0.01,
+            "drag": {
+                "kind": "referenceBc",
+                "curve": "G7",
+                "velocityBands": [
+                    {
+                        "minimumVelocityMps": 0,
+                        "ballisticCoefficient": 0.22
+                    },
+                    {
+                        "minimumVelocityMps": 400,
+                        "ballisticCoefficient": 0.25
+                    },
+                    {
+                        "minimumVelocityMps": 700,
+                        "ballisticCoefficient": 0.28
+                    }
+                ]
+            },
+            "bulletGeometry": {
+                "lengthInches": 1.2,
+                "diameterInches": 0.308,
+                "twistInches": 8
+            }
+        },
+        {
+            "id": "custom:fixture-sphere",
+            "name": "Fixture sphere",
+            "firearmGroup": "shotgun",
+            "muzzleVelocityMps": 400,
+            "pelletCount": 9,
+            "drag": {
+                "kind": "sphere",
+                "diameterM": 0.00838,
+                "materialDensityKgM3": 11340
+            }
+        },
+        {
+            "id": "custom:fixture-mach-cd",
+            "name": "Fixture Mach–Cd",
+            "firearmGroup": "rifle",
+            "muzzleVelocityMps": 800,
+            "pelletCount": 1,
+            "massKg": 0.01,
+            "drag": {
+                "kind": "tabulatedCd",
+                "referenceDiameterM": 0.00782,
+                "points": [
+                    {
+                        "mach": 0.5,
+                        "dragCoefficient": 0.25
+                    },
+                    {
+                        "mach": 1,
+                        "dragCoefficient": 0.42
+                    },
+                    {
+                        "mach": 1.2,
+                        "dragCoefficient": 0.36
+                    },
+                    {
+                        "mach": 1.6,
+                        "dragCoefficient": 0.3
+                    },
+                    {
+                        "mach": 2,
+                        "dragCoefficient": 0.27
+                    }
+                ]
+            },
+            "bulletGeometry": {
+                "lengthInches": 1.2,
+                "diameterInches": 0.308,
+                "twistInches": 8
+            }
+        }
+    ]
+}

@@ -1,0 +1,2350 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/protocol/v2/schema.json",
+    "title": "Ballistics Workbench engine protocol v2",
+    "$defs": {
+        "validationIssue": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "field", "message", "severity"],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "severity": {
+                    "enum": ["warning", "error"]
+                }
+            }
+        },
+        "referenceBcDrag": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "curve"],
+            "properties": {
+                "kind": {
+                    "const": "referenceBc"
+                },
+                "curve": {
+                    "enum": ["G1", "G7"]
+                },
+                "ballisticCoefficient": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 2
+                },
+                "velocityBands": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 16,
+                    "items": {
+                        "$ref": "#/$defs/bcBand"
+                    }
+                }
+            },
+            "oneOf": [
+                {
+                    "required": ["ballisticCoefficient"],
+                    "not": {
+                        "required": ["velocityBands"]
+                    }
+                },
+                {
+                    "required": ["velocityBands"],
+                    "not": {
+                        "required": ["ballisticCoefficient"]
+                    }
+                }
+            ]
+        },
+        "bcBand": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["minimumVelocityMps", "ballisticCoefficient"],
+            "properties": {
+                "minimumVelocityMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2000
+                },
+                "ballisticCoefficient": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 2
+                }
+            }
+        },
+        "temperatureVelocityPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["temperatureC", "multiplier"],
+            "properties": {
+                "temperatureC": {
+                    "type": "number",
+                    "minimum": -60,
+                    "maximum": 60
+                },
+                "multiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                }
+            }
+        },
+        "windLayer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "axis",
+                "startM",
+                "endM",
+                "startHeadwindMps",
+                "endHeadwindMps",
+                "startCrosswindMps",
+                "endCrosswindMps"
+            ],
+            "properties": {
+                "axis": {
+                    "enum": ["height", "downrange"]
+                },
+                "startM": {
+                    "type": "number",
+                    "minimum": -1000,
+                    "maximum": 2000
+                },
+                "endM": {
+                    "type": "number",
+                    "minimum": -1000,
+                    "maximum": 2000
+                },
+                "startHeadwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "endHeadwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "startCrosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "endCrosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "source": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "sphereDrag": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "diameterM", "materialDensityKgM3"],
+            "properties": {
+                "kind": {
+                    "const": "sphere"
+                },
+                "diameterM": {
+                    "type": "number",
+                    "minimum": 0.001,
+                    "maximum": 0.05
+                },
+                "materialDensityKgM3": {
+                    "type": "number",
+                    "minimum": 500,
+                    "maximum": 25000
+                }
+            }
+        },
+        "machCdPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mach", "dragCoefficient"],
+            "properties": {
+                "mach": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                },
+                "dragCoefficient": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 5
+                }
+            }
+        },
+        "tabulatedCdDrag": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "referenceDiameterM", "points"],
+            "properties": {
+                "kind": {
+                    "const": "tabulatedCd"
+                },
+                "referenceDiameterM": {
+                    "type": "number",
+                    "minimum": 0.001,
+                    "maximum": 0.05
+                },
+                "points": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 64,
+                    "items": {
+                        "$ref": "#/$defs/machCdPoint"
+                    }
+                }
+            }
+        },
+        "customLoad": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "firearmGroup", "muzzleVelocityMps", "pelletCount", "drag"],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "pattern": "^custom:[A-Za-z0-9._:-]+$",
+                    "maxLength": 128
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                },
+                "firearmGroup": {
+                    "enum": ["rifle", "shotgun"]
+                },
+                "muzzleVelocityMps": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 2000
+                },
+                "pelletCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                },
+                "massKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "drag": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/referenceBcDrag"
+                        },
+                        {
+                            "$ref": "#/$defs/tabulatedCdDrag"
+                        },
+                        {
+                            "$ref": "#/$defs/sphereDrag"
+                        }
+                    ]
+                },
+                "bulletGeometry": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["lengthInches", "diameterInches", "twistInches"],
+                    "properties": {
+                        "lengthInches": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "diameterInches": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "twistInches": {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "drag": {
+                                "properties": {
+                                    "kind": {
+                                        "const": "sphere"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "not": {
+                            "required": ["massKg"]
+                        }
+                    },
+                    "else": {
+                        "required": ["massKg"]
+                    }
+                }
+            ]
+        },
+        "shotgun": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sightHeightM", "zeroRangeM", "muzzleVelocityMultiplier"],
+            "properties": {
+                "sightHeightM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.25
+                },
+                "zeroRangeM": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 1000
+                },
+                "muzzleVelocityMultiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                },
+                "temperatureVelocityProfile": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 12,
+                    "items": {
+                        "$ref": "#/$defs/temperatureVelocityPoint"
+                    }
+                },
+                "temperatureVelocitySource": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "rifle": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sightHeightM",
+                "zeroRangeM",
+                "muzzleVelocityMultiplier",
+                "twistInches",
+                "twistDirection"
+            ],
+            "properties": {
+                "sightHeightM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.25
+                },
+                "zeroRangeM": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 1000
+                },
+                "muzzleVelocityMultiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                },
+                "twistInches": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                },
+                "twistDirection": {
+                    "enum": [-1, 1]
+                },
+                "temperatureVelocityProfile": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 12,
+                    "items": {
+                        "$ref": "#/$defs/temperatureVelocityPoint"
+                    }
+                },
+                "temperatureVelocitySource": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "patternObservation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rangeM", "diameter90M", "standardUncertaintyM", "shellCount", "role"],
+            "properties": {
+                "rangeM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 200
+                },
+                "diameter90M": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 20
+                },
+                "standardUncertaintyM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 5
+                },
+                "shellCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                },
+                "role": {
+                    "enum": ["calibration", "holdout"]
+                }
+            }
+        },
+        "buckshotTarget": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["shape", "widthM", "heightM", "centerHorizontalM", "centerVerticalM"],
+            "properties": {
+                "shape": {
+                    "enum": ["circle", "rectangle"]
+                },
+                "widthM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 10
+                },
+                "heightM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 10
+                },
+                "centerHorizontalM": {
+                    "type": "number",
+                    "minimum": -10,
+                    "maximum": 10
+                },
+                "centerVerticalM": {
+                    "type": "number",
+                    "minimum": -10,
+                    "maximum": 10
+                }
+            }
+        },
+        "buckshotPatternInput": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "loadId",
+                "choke",
+                "deformationClass",
+                "pelletVelocityStandardDeviationMps",
+                "targetRangeM",
+                "minimumPelletCount",
+                "target",
+                "observations"
+            ],
+            "properties": {
+                "loadId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                },
+                "choke": {
+                    "enum": ["cylinder", "improvedCylinder", "modified", "full", "custom"]
+                },
+                "deformationClass": {
+                    "enum": ["softLead", "hardenedLead", "plated", "buffered", "unknown"]
+                },
+                "pelletVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "targetRangeM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 200
+                },
+                "minimumPelletCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                },
+                "target": {
+                    "$ref": "#/$defs/buckshotTarget"
+                },
+                "observations": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 64,
+                    "items": {
+                        "$ref": "#/$defs/patternObservation"
+                    }
+                }
+            }
+        },
+        "patternResidual": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "rangeM",
+                "measuredDiameter90M",
+                "predictedDiameter90M",
+                "residualM",
+                "normalizedResidual",
+                "role"
+            ],
+            "properties": {
+                "rangeM": {
+                    "type": "number"
+                },
+                "measuredDiameter90M": {
+                    "type": "number"
+                },
+                "predictedDiameter90M": {
+                    "type": "number"
+                },
+                "residualM": {
+                    "type": "number"
+                },
+                "normalizedResidual": {
+                    "type": "number"
+                },
+                "role": {
+                    "enum": ["calibration", "holdout"]
+                }
+            }
+        },
+        "buckshotPatternResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "status",
+                "choke",
+                "deformationClass",
+                "pelletVelocityStandardDeviationMps",
+                "fittedAngularDiameterRad",
+                "angularStandardUncertaintyRad",
+                "calibrationRmseM",
+                "holdoutRmseM",
+                "reducedChiSquare",
+                "calibrationRangeMinM",
+                "calibrationRangeMaxM",
+                "targetRangeM",
+                "predictedDiameter90M",
+                "predictedDiameter90Low95M",
+                "predictedDiameter90High95M",
+                "perPelletHitProbability",
+                "perPelletHitProbabilityLow95",
+                "perPelletHitProbabilityHigh95",
+                "expectedPelletCount",
+                "minimumPelletCount",
+                "probabilityAtLeastMinimum",
+                "pelletCountProbabilities",
+                "residuals",
+                "validityStatement"
+            ],
+            "properties": {
+                "status": {
+                    "enum": ["validated_in_domain", "extrapolated"]
+                },
+                "choke": {
+                    "type": "string"
+                },
+                "deformationClass": {
+                    "type": "string"
+                },
+                "pelletVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "fittedAngularDiameterRad": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "angularStandardUncertaintyRad": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "calibrationRmseM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "holdoutRmseM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "reducedChiSquare": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "calibrationRangeMinM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "calibrationRangeMaxM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "targetRangeM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "predictedDiameter90M": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "predictedDiameter90Low95M": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "predictedDiameter90High95M": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "perPelletHitProbability": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "perPelletHitProbabilityLow95": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "perPelletHitProbabilityHigh95": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "expectedPelletCount": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "minimumPelletCount": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "probabilityAtLeastMinimum": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "pelletCountProbabilities": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 1001,
+                    "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "residuals": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 64,
+                    "items": {
+                        "$ref": "#/$defs/patternResidual"
+                    }
+                },
+                "validityStatement": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "point": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "speedMps",
+                "airspeedMps",
+                "energyJ",
+                "momentumKgms",
+                "timeS",
+                "dropM",
+                "pathM",
+                "holdoverRad",
+                "mach",
+                "spinDriftM",
+                "windDriftM"
+            ],
+            "properties": {
+                "distanceM": {
+                    "type": "number"
+                },
+                "speedMps": {
+                    "type": "number"
+                },
+                "airspeedMps": {
+                    "type": "number"
+                },
+                "energyJ": {
+                    "type": "number"
+                },
+                "momentumKgms": {
+                    "type": "number"
+                },
+                "timeS": {
+                    "type": "number"
+                },
+                "dropM": {
+                    "type": "number"
+                },
+                "pathM": {
+                    "type": "number"
+                },
+                "holdoverRad": {
+                    "type": "number"
+                },
+                "mach": {
+                    "type": "number"
+                },
+                "spinDriftM": {
+                    "type": ["number", "null"]
+                },
+                "windDriftM": {
+                    "type": "number"
+                },
+                "cd": {
+                    "type": "number"
+                },
+                "referenceCd": {
+                    "type": "number"
+                },
+                "reynolds": {
+                    "type": "number"
+                }
+            }
+        },
+        "atmosphereResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "densityKgM3",
+                "speedOfSoundMps",
+                "viscosityPaS",
+                "densityModel",
+                "speedOfSoundModel",
+                "viscosityModel",
+                "densityWithinDeclaredDomain",
+                "soundSpeedWithinDeclaredDomain",
+                "viscosityWithinDeclaredDomain",
+                "altitudeBehavior"
+            ],
+            "properties": {
+                "densityKgM3": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "speedOfSoundMps": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "viscosityPaS": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "densityModel": {
+                    "const": "ideal_moist_air_mixture"
+                },
+                "speedOfSoundModel": {
+                    "const": "cramer_1993_400_ppm_co2"
+                },
+                "viscosityModel": {
+                    "const": "sutherland_110_333_k"
+                },
+                "densityWithinDeclaredDomain": {
+                    "type": "boolean"
+                },
+                "soundSpeedWithinDeclaredDomain": {
+                    "type": "boolean"
+                },
+                "viscosityWithinDeclaredDomain": {
+                    "type": "boolean"
+                },
+                "altitudeBehavior": {
+                    "enum": ["homogeneous_at_firing_point", "icao_lapse_from_firing_point"]
+                }
+            }
+        },
+        "scenarioModelResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "targetInclinationRad",
+                "geometricAltitudeM",
+                "localGravity",
+                "coriolis",
+                "latitudeDeg",
+                "azimuthDeg",
+                "windLayerCount"
+            ],
+            "properties": {
+                "targetInclinationRad": {
+                    "type": "number"
+                },
+                "geometricAltitudeM": {
+                    "type": "number"
+                },
+                "localGravity": {
+                    "type": "boolean"
+                },
+                "coriolis": {
+                    "type": "boolean"
+                },
+                "latitudeDeg": {
+                    "type": "number"
+                },
+                "azimuthDeg": {
+                    "type": "number"
+                },
+                "windLayerCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 16
+                }
+            }
+        },
+        "calibrationAtmosphere": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "temperatureC",
+                "stationPressureHpa",
+                "relativeHumidityPercent",
+                "headwindMps",
+                "crosswindMps"
+            ],
+            "properties": {
+                "temperatureC": {
+                    "type": "number",
+                    "minimum": -60,
+                    "maximum": 60
+                },
+                "stationPressureHpa": {
+                    "type": "number",
+                    "minimum": 500,
+                    "maximum": 1100
+                },
+                "relativeHumidityPercent": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "headwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "crosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                }
+            }
+        },
+        "calibrationObservation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["distanceM", "velocityMps", "standardDeviationMps", "role"],
+            "properties": {
+                "distanceM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 2000
+                },
+                "velocityMps": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 2000
+                },
+                "standardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 200
+                },
+                "role": {
+                    "enum": ["calibration", "holdout"]
+                }
+            }
+        },
+        "calibrationEstimate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "minimumVelocityMps",
+                "ballisticCoefficient",
+                "confidence95Low",
+                "confidence95High"
+            ],
+            "properties": {
+                "minimumVelocityMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2000
+                },
+                "ballisticCoefficient": {
+                    "type": "number",
+                    "minimum": 0.005,
+                    "maximum": 2
+                },
+                "confidence95Low": {
+                    "type": ["number", "null"],
+                    "minimum": 0.005,
+                    "maximum": 2
+                },
+                "confidence95High": {
+                    "type": ["number", "null"],
+                    "minimum": 0.005,
+                    "maximum": 2
+                }
+            }
+        },
+        "calibrationResidual": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "measuredVelocityMps",
+                "predictedVelocityMps",
+                "residualMps",
+                "normalizedResidual",
+                "standardDeviationMps",
+                "role"
+            ],
+            "properties": {
+                "distanceM": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 2000
+                },
+                "measuredVelocityMps": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 2000
+                },
+                "predictedVelocityMps": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "residualMps": {
+                    "type": "number"
+                },
+                "normalizedResidual": {
+                    "type": "number"
+                },
+                "standardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 200
+                },
+                "role": {
+                    "enum": ["calibration", "holdout"]
+                }
+            }
+        },
+        "uncertaintyVariable": {
+            "enum": [
+                "muzzleVelocity",
+                "drag",
+                "temperature",
+                "stationPressure",
+                "headwind",
+                "crosswind",
+                "zeroRange"
+            ]
+        },
+        "uncertaintyCorrelation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["first", "second", "coefficient"],
+            "properties": {
+                "first": {
+                    "$ref": "#/$defs/uncertaintyVariable"
+                },
+                "second": {
+                    "$ref": "#/$defs/uncertaintyVariable"
+                },
+                "coefficient": {
+                    "type": "number",
+                    "exclusiveMinimum": -1,
+                    "exclusiveMaximum": 1
+                }
+            }
+        },
+        "uncertaintyInput": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "method",
+                "sampleCount",
+                "seed",
+                "correlations",
+                "shotgunMuzzleVelocityStandardDeviationMps",
+                "rifleMuzzleVelocityStandardDeviationMps",
+                "dragRelativeStandardDeviation",
+                "temperatureStandardDeviationC",
+                "stationPressureStandardDeviationHpa",
+                "headwindStandardDeviationMps",
+                "crosswindStandardDeviationMps",
+                "shotgunZeroRangeStandardDeviationM",
+                "rifleZeroRangeStandardDeviationM"
+            ],
+            "properties": {
+                "method": {
+                    "enum": ["firstOrder", "monteCarlo"]
+                },
+                "sampleCount": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 10000
+                },
+                "seed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                },
+                "correlations": {
+                    "type": "array",
+                    "maxItems": 21,
+                    "items": {
+                        "$ref": "#/$defs/uncertaintyCorrelation"
+                    }
+                },
+                "shotgunMuzzleVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "rifleMuzzleVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "dragRelativeStandardDeviation": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "temperatureStandardDeviationC": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                },
+                "stationPressureStandardDeviationHpa": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "headwindStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 50
+                },
+                "crosswindStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 50
+                },
+                "shotgunZeroRangeStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "rifleZeroRangeStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                }
+            }
+        },
+        "machCrossing": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mach", "distanceM", "direction"],
+            "properties": {
+                "mach": {
+                    "enum": [0.8, 1, 1.2]
+                },
+                "distanceM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "direction": {
+                    "enum": ["accelerating", "decelerating"]
+                }
+            }
+        },
+        "trajectoryEvents": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "analyzedDistanceM",
+                "zeroCrossingsStatus",
+                "nearZeroM",
+                "farZeroM",
+                "maximumOrdinateStatus",
+                "maximumOrdinateDistanceM",
+                "maximumOrdinatePathM",
+                "supersonicRangeStatus",
+                "supersonicRangeM",
+                "groundIntersectionStatus",
+                "groundIntersectionM",
+                "machCrossings"
+            ],
+            "properties": {
+                "analyzedDistanceM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "zeroCrossingsStatus": {
+                    "enum": ["complete", "horizon_limited", "baseline_unavailable"]
+                },
+                "nearZeroM": {
+                    "type": ["number", "null"],
+                    "minimum": 0
+                },
+                "farZeroM": {
+                    "type": ["number", "null"],
+                    "minimum": 0
+                },
+                "maximumOrdinateStatus": {
+                    "enum": ["complete", "horizon_limited", "baseline_unavailable"]
+                },
+                "maximumOrdinateDistanceM": {
+                    "type": ["number", "null"],
+                    "minimum": 0
+                },
+                "maximumOrdinatePathM": {
+                    "type": ["number", "null"]
+                },
+                "supersonicRangeStatus": {
+                    "enum": [
+                        "complete",
+                        "horizon_limited",
+                        "baseline_unavailable",
+                        "not_applicable"
+                    ]
+                },
+                "supersonicRangeM": {
+                    "type": ["number", "null"],
+                    "minimum": 0
+                },
+                "groundIntersectionStatus": {
+                    "enum": ["complete", "horizon_limited", "baseline_unavailable"]
+                },
+                "groundIntersectionM": {
+                    "type": ["number", "null"],
+                    "minimum": 0
+                },
+                "machCrossings": {
+                    "type": "array",
+                    "maxItems": 32,
+                    "items": {
+                        "$ref": "#/$defs/machCrossing"
+                    }
+                }
+            }
+        },
+        "uncertaintyPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "available",
+                "speedStandardDeviationMps",
+                "energyStandardDeviationJ",
+                "momentumStandardDeviationKgms",
+                "timeStandardDeviationS",
+                "dropStandardDeviationM",
+                "pathStandardDeviationM",
+                "holdoverStandardDeviationRad",
+                "windDriftStandardDeviationM"
+            ],
+            "properties": {
+                "distanceM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "available": {
+                    "type": "boolean"
+                },
+                "speedStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "energyStandardDeviationJ": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "momentumStandardDeviationKgms": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "timeStandardDeviationS": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "dropStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "pathStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "holdoverStandardDeviationRad": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "windDriftStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "firstOrderUncertaintyResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "method",
+                "confidenceLevel",
+                "status",
+                "activeInputCount",
+                "completedInputCount",
+                "points"
+            ],
+            "properties": {
+                "method": {
+                    "const": "first_order_central_difference"
+                },
+                "confidenceLevel": {
+                    "const": 0.95
+                },
+                "status": {
+                    "enum": ["complete", "partial", "no_inputs", "baseline_unavailable"]
+                },
+                "activeInputCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 7
+                },
+                "completedInputCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 7
+                },
+                "points": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/uncertaintyPoint"
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "status": {
+                                "const": "complete"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "activeInputCount": {
+                                "minimum": 1
+                            },
+                            "points": {
+                                "items": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/$defs/uncertaintyPoint"
+                                        },
+                                        {
+                                            "properties": {
+                                                "available": {
+                                                    "const": true
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "status": {
+                                "const": "no_inputs"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "activeInputCount": {
+                                "const": 0
+                            },
+                            "completedInputCount": {
+                                "const": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "status": {
+                                "const": "baseline_unavailable"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "completedInputCount": {
+                                "const": 0
+                            },
+                            "points": {
+                                "items": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/$defs/uncertaintyPoint"
+                                        },
+                                        {
+                                            "properties": {
+                                                "available": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "uncertaintyInterval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["median", "low95", "high95"],
+            "properties": {
+                "median": {
+                    "type": "number"
+                },
+                "low95": {
+                    "type": "number"
+                },
+                "high95": {
+                    "type": "number"
+                }
+            }
+        },
+        "monteCarloUncertaintyPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "available",
+                "speedMps",
+                "energyJ",
+                "momentumKgms",
+                "timeS",
+                "dropM",
+                "pathM",
+                "holdoverRad",
+                "windDriftM"
+            ],
+            "properties": {
+                "distanceM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "available": {
+                    "type": "boolean"
+                },
+                "speedMps": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "energyJ": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "momentumKgms": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "timeS": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "dropM": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "pathM": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "holdoverRad": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                },
+                "windDriftM": {
+                    "$ref": "#/$defs/uncertaintyInterval"
+                }
+            }
+        },
+        "monteCarloUncertaintyResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "method",
+                "confidenceLevel",
+                "status",
+                "seed",
+                "requestedSampleCount",
+                "completedSampleCount",
+                "maximumSplitQuantileDelta",
+                "points"
+            ],
+            "properties": {
+                "method": {
+                    "const": "monte_carlo"
+                },
+                "confidenceLevel": {
+                    "const": 0.95
+                },
+                "status": {
+                    "enum": ["complete", "partial", "no_inputs", "baseline_unavailable"]
+                },
+                "seed": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "requestedSampleCount": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 10000
+                },
+                "completedSampleCount": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                },
+                "maximumSplitQuantileDelta": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "points": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/monteCarloUncertaintyPoint"
+                    }
+                }
+            }
+        },
+        "uncertaintyResult": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/firstOrderUncertaintyResult"
+                },
+                {
+                    "$ref": "#/$defs/monteCarloUncertaintyResult"
+                }
+            ]
+        },
+        "loadResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "shortName",
+                "dragModel",
+                "firearmGroup",
+                "source",
+                "massKg",
+                "muzzleVelocityMps",
+                "ballisticCoefficient",
+                "ballisticCoefficientBands",
+                "dragReferenceDiameterM",
+                "machCdPoints",
+                "bcKind",
+                "sphereDiameterM",
+                "materialDensityKgM3",
+                "pelletCount",
+                "requestedDistanceM",
+                "coveredDistanceM",
+                "trajectoryStatus",
+                "solutionHorizonM",
+                "solverDiagnostics",
+                "dragValidity",
+                "mpbrStatus",
+                "zeroM",
+                "mpbrM",
+                "sightHeightM",
+                "sightZeroM",
+                "boreElevationRad",
+                "zeroErrorM",
+                "zeroingStatus",
+                "dropAtSightZeroM",
+                "spinDriftStatus",
+                "effectiveTwistInches",
+                "gyroscopicStability",
+                "trajectoryEvents",
+                "uncertainty",
+                "buckshotPattern",
+                "points"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "name": {
+                    "type": "string"
+                },
+                "shortName": {
+                    "type": "string"
+                },
+                "dragModel": {
+                    "enum": ["G1", "G7", "MachCd", "Sphere"]
+                },
+                "firearmGroup": {
+                    "enum": ["rifle", "shotgun"]
+                },
+                "source": {
+                    "enum": ["builtIn", "custom"]
+                },
+                "massKg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "muzzleVelocityMps": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "ballisticCoefficient": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "ballisticCoefficientBands": {
+                    "type": "array",
+                    "maxItems": 16,
+                    "items": {
+                        "$ref": "#/$defs/bcBand"
+                    }
+                },
+                "dragReferenceDiameterM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "machCdPoints": {
+                    "type": "array",
+                    "maxItems": 64,
+                    "items": {
+                        "$ref": "#/$defs/machCdPoint"
+                    }
+                },
+                "bcKind": {
+                    "type": "string"
+                },
+                "sphereDiameterM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "materialDensityKgM3": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "pelletCount": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "requestedDistanceM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "coveredDistanceM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "trajectoryStatus": {
+                    "enum": [
+                        "complete",
+                        "ground_impact",
+                        "minimum_forward_speed",
+                        "maximum_time",
+                        "maximum_steps",
+                        "horizontal_reversal",
+                        "non_finite_state"
+                    ]
+                },
+                "solutionHorizonM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "solverDiagnostics": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "mode",
+                        "attemptedSteps",
+                        "acceptedSteps",
+                        "rejectedSteps",
+                        "minimumAcceptedTimeStepS",
+                        "maximumAcceptedTimeStepS",
+                        "finalTimeStepS",
+                        "maximumErrorNorm"
+                    ],
+                    "properties": {
+                        "mode": {
+                            "const": "adaptive_time"
+                        },
+                        "attemptedSteps": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "acceptedSteps": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "rejectedSteps": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "minimumAcceptedTimeStepS": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "maximumAcceptedTimeStepS": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "finalTimeStepS": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "maximumErrorNorm": {
+                            "type": "number",
+                            "minimum": 0
+                        }
+                    }
+                },
+                "dragValidity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "status",
+                        "supportedMachMin",
+                        "supportedMachMax",
+                        "supportedReynoldsMin",
+                        "supportedReynoldsMax",
+                        "observedMachMin",
+                        "observedMachMax",
+                        "observedReynoldsMin",
+                        "observedReynoldsMax"
+                    ],
+                    "properties": {
+                        "status": {
+                            "enum": ["within_domain", "extrapolated", "not_declared"]
+                        },
+                        "supportedMachMin": {
+                            "type": ["number", "null"]
+                        },
+                        "supportedMachMax": {
+                            "type": ["number", "null"]
+                        },
+                        "supportedReynoldsMin": {
+                            "type": ["number", "null"]
+                        },
+                        "supportedReynoldsMax": {
+                            "type": ["number", "null"]
+                        },
+                        "observedMachMin": {
+                            "type": ["number", "null"]
+                        },
+                        "observedMachMax": {
+                            "type": ["number", "null"]
+                        },
+                        "observedReynoldsMin": {
+                            "type": ["number", "null"]
+                        },
+                        "observedReynoldsMax": {
+                            "type": ["number", "null"]
+                        }
+                    }
+                },
+                "mpbrStatus": {
+                    "enum": ["complete", "horizon_limited", "no_solution", "invalid_geometry"]
+                },
+                "zeroM": {
+                    "type": ["number", "null"]
+                },
+                "mpbrM": {
+                    "type": ["number", "null"]
+                },
+                "sightHeightM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "sightZeroM": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "boreElevationRad": {
+                    "type": ["number", "null"]
+                },
+                "zeroErrorM": {
+                    "type": ["number", "null"]
+                },
+                "zeroingStatus": {
+                    "enum": ["complete", "range_unavailable", "no_solution", "invalid_geometry"]
+                },
+                "dropAtSightZeroM": {
+                    "type": ["number", "null"]
+                },
+                "spinDriftStatus": {
+                    "enum": [
+                        "available",
+                        "not_applicable",
+                        "missing_geometry",
+                        "invalid_stability",
+                        "unstable",
+                        "outside_empirical_domain"
+                    ]
+                },
+                "effectiveTwistInches": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "gyroscopicStability": {
+                    "type": ["number", "null"]
+                },
+                "trajectoryEvents": {
+                    "$ref": "#/$defs/trajectoryEvents"
+                },
+                "uncertainty": {
+                    "oneOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "#/$defs/uncertaintyResult"
+                        }
+                    ]
+                },
+                "buckshotPattern": {
+                    "oneOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "$ref": "#/$defs/buckshotPatternResult"
+                        }
+                    ]
+                },
+                "points": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/point"
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "dragModel": {
+                                "const": "MachCd"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "ballisticCoefficient": {
+                                "const": 0
+                            },
+                            "dragReferenceDiameterM": {
+                                "exclusiveMinimum": 0
+                            },
+                            "machCdPoints": {
+                                "minItems": 2
+                            }
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "dragReferenceDiameterM": {
+                                "const": 0
+                            },
+                            "machCdPoints": {
+                                "maxItems": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "dragModel": {
+                                "const": "Sphere"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "ballisticCoefficient": {
+                                "const": 0
+                            },
+                            "ballisticCoefficientBands": {
+                                "maxItems": 0
+                            }
+                        }
+                    },
+                    "else": {
+                        "if": {
+                            "properties": {
+                                "dragModel": {
+                                    "enum": ["G1", "G7"]
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "ballisticCoefficient": {
+                                    "exclusiveMinimum": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "oneOf": [
+        {
+            "title": "Calculation request",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["protocolVersion", "requestId", "scenario", "customLoads"],
+            "properties": {
+                "protocolVersion": {
+                    "const": 2
+                },
+                "requestId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._:-]+$",
+                    "maxLength": 128
+                },
+                "scenario": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "displayDistanceM",
+                        "solutionHorizonM",
+                        "vitalZoneM",
+                        "atmosphere",
+                        "firearms"
+                    ],
+                    "properties": {
+                        "displayDistanceM": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 2000
+                        },
+                        "solutionHorizonM": {
+                            "type": "number",
+                            "minimum": 100,
+                            "maximum": 2000
+                        },
+                        "vitalZoneM": {
+                            "type": "number",
+                            "minimum": 0.01,
+                            "maximum": 2
+                        },
+                        "geometry": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "targetInclinationDeg": {
+                                    "type": "number",
+                                    "minimum": -60,
+                                    "maximum": 60
+                                },
+                                "targetElevationM": {
+                                    "type": "number",
+                                    "minimum": -1732,
+                                    "maximum": 1732
+                                }
+                            }
+                        },
+                        "atmosphere": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "temperatureC",
+                                "stationPressureHpa",
+                                "relativeHumidityPercent",
+                                "headwindMps",
+                                "crosswindMps"
+                            ],
+                            "properties": {
+                                "temperatureC": {
+                                    "type": "number",
+                                    "minimum": -60,
+                                    "maximum": 60
+                                },
+                                "stationPressureHpa": {
+                                    "type": "number",
+                                    "minimum": 500,
+                                    "maximum": 1100
+                                },
+                                "relativeHumidityPercent": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 100
+                                },
+                                "headwindMps": {
+                                    "type": "number",
+                                    "minimum": -100,
+                                    "maximum": 100
+                                },
+                                "crosswindMps": {
+                                    "type": "number",
+                                    "minimum": -100,
+                                    "maximum": 100
+                                },
+                                "geometricAltitudeM": {
+                                    "type": "number",
+                                    "minimum": -1000,
+                                    "maximum": 11000
+                                },
+                                "altitudeDependent": {
+                                    "type": "boolean"
+                                },
+                                "useLocalGravity": {
+                                    "type": "boolean"
+                                },
+                                "coriolisEnabled": {
+                                    "type": "boolean"
+                                },
+                                "latitudeDeg": {
+                                    "type": "number",
+                                    "minimum": -90,
+                                    "maximum": 90
+                                },
+                                "azimuthDeg": {
+                                    "type": "number",
+                                    "minimum": -360,
+                                    "maximum": 360
+                                },
+                                "windLayers": {
+                                    "type": "array",
+                                    "maxItems": 16,
+                                    "items": {
+                                        "$ref": "#/$defs/windLayer"
+                                    }
+                                },
+                                "windProvenance": {
+                                    "type": "string",
+                                    "maxLength": 240
+                                }
+                            }
+                        },
+                        "firearms": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["shotgun", "rifle"],
+                            "properties": {
+                                "shotgun": {
+                                    "$ref": "#/$defs/shotgun"
+                                },
+                                "rifle": {
+                                    "$ref": "#/$defs/rifle"
+                                }
+                            }
+                        },
+                        "uncertainty": {
+                            "$ref": "#/$defs/uncertaintyInput"
+                        },
+                        "buckshotPattern": {
+                            "$ref": "#/$defs/buckshotPatternInput"
+                        }
+                    }
+                },
+                "customLoads": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "items": {
+                        "$ref": "#/$defs/customLoad"
+                    }
+                }
+            }
+        },
+        {
+            "title": "Reference-BC calibration request",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "protocolVersion",
+                "requestId",
+                "operation",
+                "atmosphere",
+                "projectile",
+                "fit",
+                "observations"
+            ],
+            "properties": {
+                "protocolVersion": {
+                    "const": 2
+                },
+                "requestId": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._:-]+$",
+                    "maxLength": 128
+                },
+                "operation": {
+                    "const": "calibrateReferenceBc"
+                },
+                "atmosphere": {
+                    "$ref": "#/$defs/calibrationAtmosphere"
+                },
+                "projectile": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "curve",
+                        "massKg",
+                        "muzzleVelocityMps",
+                        "initialBallisticCoefficient"
+                    ],
+                    "properties": {
+                        "curve": {
+                            "enum": ["G1", "G7"]
+                        },
+                        "massKg": {
+                            "type": "number",
+                            "minimum": 0.000001,
+                            "maximum": 10
+                        },
+                        "muzzleVelocityMps": {
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 2000
+                        },
+                        "initialBallisticCoefficient": {
+                            "type": "number",
+                            "minimum": 0.005,
+                            "maximum": 2
+                        }
+                    }
+                },
+                "fit": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["kind"],
+                            "properties": {
+                                "kind": {
+                                    "const": "constant"
+                                }
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["kind", "minimumVelocitiesMps"],
+                            "properties": {
+                                "kind": {
+                                    "const": "velocityBands"
+                                },
+                                "minimumVelocitiesMps": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 4,
+                                    "items": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 2000
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "observations": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 32,
+                    "items": {
+                        "$ref": "#/$defs/calibrationObservation"
+                    }
+                }
+            }
+        },
+        {
+            "title": "Successful calculation response",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "protocolVersion",
+                "engineVersion",
+                "modelVersion",
+                "requestId",
+                "ok",
+                "issues",
+                "atmosphere",
+                "scenarioModel",
+                "loads"
+            ],
+            "properties": {
+                "protocolVersion": {
+                    "const": 2
+                },
+                "engineVersion": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "modelVersion": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "ok": {
+                    "const": true
+                },
+                "issues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/validationIssue"
+                    }
+                },
+                "atmosphere": {
+                    "$ref": "#/$defs/atmosphereResult"
+                },
+                "scenarioModel": {
+                    "$ref": "#/$defs/scenarioModelResult"
+                },
+                "loads": {
+                    "type": "array",
+                    "minItems": 6,
+                    "items": {
+                        "$ref": "#/$defs/loadResult"
+                    }
+                }
+            }
+        },
+        {
+            "title": "Successful reference-BC calibration response",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "protocolVersion",
+                "engineVersion",
+                "modelVersion",
+                "requestId",
+                "ok",
+                "operation",
+                "issues",
+                "calibration"
+            ],
+            "properties": {
+                "protocolVersion": {
+                    "const": 2
+                },
+                "engineVersion": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "modelVersion": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "ok": {
+                    "const": true
+                },
+                "operation": {
+                    "const": "calibrateReferenceBc"
+                },
+                "issues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/validationIssue"
+                    }
+                },
+                "calibration": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "curve",
+                        "fitKind",
+                        "status",
+                        "iterations",
+                        "objectiveEvaluations",
+                        "calibrationRmseMps",
+                        "weightedRmse",
+                        "holdoutRmseMps",
+                        "reducedChiSquare",
+                        "hasHoldout",
+                        "validationClaimAvailable",
+                        "estimates",
+                        "residuals"
+                    ],
+                    "properties": {
+                        "curve": {
+                            "enum": ["G1", "G7"]
+                        },
+                        "fitKind": {
+                            "enum": ["constant", "velocityBands"]
+                        },
+                        "status": {
+                            "enum": [
+                                "converged",
+                                "maximum_iterations",
+                                "insufficient_information",
+                                "solver_failure"
+                            ]
+                        },
+                        "iterations": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "objectiveEvaluations": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "calibrationRmseMps": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "weightedRmse": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "holdoutRmseMps": {
+                            "type": ["number", "null"],
+                            "minimum": 0
+                        },
+                        "reducedChiSquare": {
+                            "type": "number",
+                            "minimum": 0
+                        },
+                        "hasHoldout": {
+                            "type": "boolean"
+                        },
+                        "validationClaimAvailable": {
+                            "type": "boolean"
+                        },
+                        "estimates": {
+                            "type": "array",
+                            "maxItems": 4,
+                            "items": {
+                                "$ref": "#/$defs/calibrationEstimate"
+                            }
+                        },
+                        "residuals": {
+                            "type": "array",
+                            "maxItems": 32,
+                            "items": {
+                                "$ref": "#/$defs/calibrationResidual"
+                            }
+                        }
+                    },
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": {
+                                    "status": {
+                                        "const": "solver_failure"
+                                    }
+                                }
+                            },
+                            "then": {
+                                "properties": {
+                                    "holdoutRmseMps": {
+                                        "const": null
+                                    },
+                                    "validationClaimAvailable": {
+                                        "const": false
+                                    },
+                                    "estimates": {
+                                        "maxItems": 0
+                                    },
+                                    "residuals": {
+                                        "maxItems": 0
+                                    }
+                                }
+                            },
+                            "else": {
+                                "properties": {
+                                    "residuals": {
+                                        "minItems": 1
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "title": "Failed calculation response",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "protocolVersion",
+                "engineVersion",
+                "modelVersion",
+                "requestId",
+                "ok",
+                "issues"
+            ],
+            "properties": {
+                "protocolVersion": {
+                    "const": 2
+                },
+                "engineVersion": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "modelVersion": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "ok": {
+                    "const": false
+                },
+                "issues": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/$defs/validationIssue"
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,221 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/atmosphere-report.schema.json",
+    "title": "Ballistics Workbench atmosphere-property conformance report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "reportType",
+        "engineVersion",
+        "modelVersion",
+        "compiler",
+        "passed",
+        "density",
+        "speedOfSound",
+        "dynamicViscosity"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "reportType": { "const": "atmosphere_property_conformance" },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "compiler": { "type": "string", "minLength": 1 },
+        "passed": { "type": "boolean" },
+        "density": { "$ref": "#/$defs/densityConformance" },
+        "speedOfSound": { "$ref": "#/$defs/soundSpeedConformance" },
+        "dynamicViscosity": { "$ref": "#/$defs/viscosityConformance" }
+    },
+    "$defs": {
+        "interval": {
+            "type": "array",
+            "prefixItems": [{ "type": "number" }, { "type": "number" }],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "commonProperties": {
+            "sourceDatasetId": { "type": "string", "minLength": 1 },
+            "referenceModel": { "type": "string", "minLength": 1 },
+            "productionModel": { "type": "string", "minLength": 1 },
+            "toleranceRelative": { "type": "number", "exclusiveMinimum": 0 },
+            "maximumRelative": { "type": "number", "minimum": 0 },
+            "passed": { "type": "boolean" }
+        },
+        "densityConformance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sourceDatasetId",
+                "referenceModel",
+                "productionModel",
+                "declaredDomain",
+                "toleranceRelative",
+                "maximumRelative",
+                "passed",
+                "samples"
+            ],
+            "properties": {
+                "sourceDatasetId": { "$ref": "#/$defs/commonProperties/sourceDatasetId" },
+                "referenceModel": { "$ref": "#/$defs/commonProperties/referenceModel" },
+                "productionModel": { "$ref": "#/$defs/commonProperties/productionModel" },
+                "toleranceRelative": { "$ref": "#/$defs/commonProperties/toleranceRelative" },
+                "maximumRelative": { "$ref": "#/$defs/commonProperties/maximumRelative" },
+                "passed": { "$ref": "#/$defs/commonProperties/passed" },
+                "declaredDomain": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["temperatureC", "stationPressureHpa", "relativeHumidityPercent"],
+                    "properties": {
+                        "temperatureC": { "$ref": "#/$defs/interval" },
+                        "stationPressureHpa": { "$ref": "#/$defs/interval" },
+                        "relativeHumidityPercent": { "$ref": "#/$defs/interval" }
+                    }
+                },
+                "samples": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "temperatureC",
+                            "stationPressureHpa",
+                            "relativeHumidityPercent",
+                            "referenceDensityKgM3",
+                            "productionDensityKgM3",
+                            "relativeResidual"
+                        ],
+                        "properties": {
+                            "temperatureC": { "type": "number" },
+                            "stationPressureHpa": { "type": "number" },
+                            "relativeHumidityPercent": { "type": "number" },
+                            "referenceDensityKgM3": { "type": "number", "exclusiveMinimum": 0 },
+                            "productionDensityKgM3": { "type": "number", "exclusiveMinimum": 0 },
+                            "relativeResidual": { "type": "number", "minimum": 0 }
+                        }
+                    }
+                }
+            }
+        },
+        "soundSpeedConformance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sourceDatasetId",
+                "referenceModel",
+                "productionModel",
+                "declaredDomain",
+                "toleranceRelative",
+                "maximumRelative",
+                "passed",
+                "samples"
+            ],
+            "properties": {
+                "sourceDatasetId": { "$ref": "#/$defs/commonProperties/sourceDatasetId" },
+                "referenceModel": { "$ref": "#/$defs/commonProperties/referenceModel" },
+                "productionModel": { "$ref": "#/$defs/commonProperties/productionModel" },
+                "toleranceRelative": { "$ref": "#/$defs/commonProperties/toleranceRelative" },
+                "maximumRelative": { "$ref": "#/$defs/commonProperties/maximumRelative" },
+                "passed": { "$ref": "#/$defs/commonProperties/passed" },
+                "declaredDomain": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "temperatureC",
+                        "stationPressureHpa",
+                        "relativeHumidityPercent",
+                        "acousticFrequencyHz"
+                    ],
+                    "properties": {
+                        "temperatureC": { "$ref": "#/$defs/interval" },
+                        "stationPressureHpa": { "$ref": "#/$defs/interval" },
+                        "relativeHumidityPercent": { "$ref": "#/$defs/interval" },
+                        "acousticFrequencyHz": { "$ref": "#/$defs/interval" }
+                    }
+                },
+                "samples": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "temperatureC",
+                            "stationPressureHpa",
+                            "relativeHumidityPercent",
+                            "co2MoleFraction",
+                            "acousticFrequencyHz",
+                            "referenceSpeedMps",
+                            "referenceStandardUncertaintyMps",
+                            "productionSpeedMps",
+                            "relativeResidual"
+                        ],
+                        "properties": {
+                            "temperatureC": { "type": "number" },
+                            "stationPressureHpa": { "type": "number" },
+                            "relativeHumidityPercent": { "type": "number" },
+                            "co2MoleFraction": { "type": "number", "minimum": 0 },
+                            "acousticFrequencyHz": { "type": "number", "minimum": 0 },
+                            "referenceSpeedMps": { "type": "number", "exclusiveMinimum": 0 },
+                            "referenceStandardUncertaintyMps": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                            },
+                            "productionSpeedMps": { "type": "number", "exclusiveMinimum": 0 },
+                            "relativeResidual": { "type": "number", "minimum": 0 }
+                        }
+                    }
+                }
+            }
+        },
+        "viscosityConformance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sourceDatasetId",
+                "referenceModel",
+                "productionModel",
+                "declaredDomain",
+                "toleranceRelative",
+                "maximumRelative",
+                "passed",
+                "samples"
+            ],
+            "properties": {
+                "sourceDatasetId": { "$ref": "#/$defs/commonProperties/sourceDatasetId" },
+                "referenceModel": { "$ref": "#/$defs/commonProperties/referenceModel" },
+                "productionModel": { "$ref": "#/$defs/commonProperties/productionModel" },
+                "toleranceRelative": { "$ref": "#/$defs/commonProperties/toleranceRelative" },
+                "maximumRelative": { "$ref": "#/$defs/commonProperties/maximumRelative" },
+                "passed": { "$ref": "#/$defs/commonProperties/passed" },
+                "declaredDomain": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["temperatureC"],
+                    "properties": { "temperatureC": { "$ref": "#/$defs/interval" } }
+                },
+                "samples": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "temperatureC",
+                            "referenceViscosityPaS",
+                            "productionViscosityPaS",
+                            "relativeResidual"
+                        ],
+                        "properties": {
+                            "temperatureC": { "type": "number" },
+                            "referenceViscosityPaS": { "type": "number", "exclusiveMinimum": 0 },
+                            "productionViscosityPaS": { "type": "number", "exclusiveMinimum": 0 },
+                            "relativeResidual": { "type": "number", "minimum": 0 }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

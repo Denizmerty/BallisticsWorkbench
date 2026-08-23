@@ -1,0 +1,523 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to build and publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.metadata.outputs.tag }}
+      version: ${{ steps.metadata.outputs.version }}
+      commit: ${{ steps.source.outputs.commit }}
+      generated_at: ${{ steps.metadata.outputs.generated_at }}
+
+    steps:
+      - name: Resolve release tag
+        id: metadata
+        env:
+          REQUESTED_TAG: ${{ github.event.inputs.tag }}
+        run: |
+          tag="${REQUESTED_TAG:-${GITHUB_REF_NAME}}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "version=${tag#v}" >> "${GITHUB_OUTPUT}"
+          echo "generated_at=$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')" >> "${GITHUB_OUTPUT}"
+
+      - name: Check out the immutable tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.metadata.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Confirm the tag resolves to this workflow commit
+        if: github.event_name == 'push'
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - name: Record tagged source commit
+        id: source
+        run: echo "commit=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify tag and synchronized version identities
+        run: npm run release:verify-version -- --tag "${{ steps.metadata.outputs.tag }}"
+
+      - name: Validate source-controlled model evidence
+        run: npm run validate:artifacts
+
+      - name: Run dependency advisory gate
+        run: npm audit --audit-level=high
+
+  windows:
+    needs: verify
+    runs-on: windows-latest
+    outputs:
+      signed: ${{ steps.signature.outputs.signed }}
+    env:
+      CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+
+    steps:
+      - name: Check out the immutable tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Reject incomplete Windows signing configuration
+        shell: pwsh
+        run: |
+          $configured = @(
+            -not [string]::IsNullOrWhiteSpace($env:CSC_LINK),
+            -not [string]::IsNullOrWhiteSpace($env:CSC_KEY_PASSWORD)
+          )
+          if ($configured -contains $true -and $configured -contains $false) {
+            throw 'WINDOWS_CSC_LINK and WINDOWS_CSC_KEY_PASSWORD must be configured together.'
+          }
+
+      - name: Build and test native Release targets
+        shell: pwsh
+        run: .\scripts\build.cmd
+
+      - name: Verify the Windows interaction budget
+        shell: pwsh
+        run: |
+          build\ballistics_benchmarks.exe --iterations 5 --output build\validation\benchmark.json
+          npm run performance:assess -- `
+            --benchmark build/validation/benchmark.json `
+            --engine build/stage/bin/ballistics_cli.exe `
+            --output build/validation/interaction-performance.json `
+            --iterations 5
+          npm run performance:trend -- `
+            --benchmark build/validation/benchmark.json `
+            --history benchmarks/history.json `
+            --output build/validation/benchmark-trend.json `
+            --markdown build/validation/benchmark-trend.md
+          npm run validation:summary
+          npm run validation:summary:check
+
+      - name: Run renderer and release-integrity tests
+        run: npm test
+
+      - name: Check formatting and build the Windows installer
+        shell: pwsh
+        run: |
+          npm run format:check
+          npm run package:win
+
+      - name: Smoke-test packaged application
+        shell: pwsh
+        run: |
+          $executable = 'outputs\installer\win-unpacked\Ballistics Workbench.exe'
+          $result = Start-Process -FilePath $executable -ArgumentList '--smoke-test' -Wait -PassThru
+          if ($result.ExitCode -ne 0) { exit $result.ExitCode }
+          npm run test:e2e:win
+
+      - name: Verify Authenticode status
+        id: signature
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem outputs\installer\*.exe | Select-Object -First 1
+          if (-not $installer) { throw 'The Windows installer was not produced.' }
+          $requested = -not [string]::IsNullOrWhiteSpace($env:CSC_LINK)
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
+          $signed = $signature.Status -eq 'Valid'
+          if ($requested -and -not $signed) {
+            throw "Authenticode validation failed: $($signature.Status) $($signature.StatusMessage)"
+          }
+          "signed=$($signed.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+
+      - name: Record Windows toolchain
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installation = & $vswhere -latest -products * -property installationPath
+          $compilerFile = Get-ChildItem "$installation\VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe" |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $compilerFile) { throw 'Could not identify the release MSVC compiler.' }
+          $compiler = "MSVC $($compilerFile.VersionInfo.ProductVersion)"
+          $cmake = (cmake --version | Select-Object -First 1).Trim()
+          $electron = node -p "require('./package.json').devDependencies.electron"
+          $builder = node -p "require('./package.json').devDependencies['electron-builder']"
+          node scripts/release/write-toolchain-fragment.mjs `
+            --output outputs/release-fragments/windows-toolchain.json `
+            --platform windows `
+            --runner windows-latest `
+            --architecture x64 `
+            --compiler "$compiler" `
+            --cmake "$cmake" `
+            --node "$(node --version)" `
+            --npm "$(npm --version)" `
+            --electron "$electron" `
+            --electron-builder "$builder" `
+            --signed "${{ steps.signature.outputs.signed }}" `
+            --notarized false `
+            --notes "Authenticode is required when Windows signing secrets are configured."
+
+      - name: Stage Windows release inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: |
+            outputs/installer/*.exe
+            outputs/release-fragments/windows-toolchain.json
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    needs: verify
+    runs-on: macos-latest
+    outputs:
+      signed: ${{ steps.signature.outputs.signed }}
+      notarized: ${{ steps.signature.outputs.notarized }}
+    env:
+      CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+      MACOS_IDENTITY: ${{ secrets.MACOS_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+    steps:
+      - name: Check out the immutable tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Validate signing and notarization configuration
+        run: |
+          certificate_values=("$CSC_LINK" "$CSC_KEY_PASSWORD" "$MACOS_IDENTITY")
+          apple_values=("$APPLE_ID" "$APPLE_APP_SPECIFIC_PASSWORD" "$APPLE_TEAM_ID")
+          certificate_count=0
+          apple_count=0
+          for value in "${certificate_values[@]}"; do [[ -n "$value" ]] && certificate_count=$((certificate_count + 1)); done
+          for value in "${apple_values[@]}"; do [[ -n "$value" ]] && apple_count=$((apple_count + 1)); done
+          [[ "$certificate_count" = 0 || "$certificate_count" = 3 ]] || {
+            echo 'MACOS_CSC_LINK, MACOS_CSC_KEY_PASSWORD, and MACOS_IDENTITY must be configured together.' >&2
+            exit 1
+          }
+          [[ "$apple_count" = 0 || "$apple_count" = 3 ]] || {
+            echo 'APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, and APPLE_TEAM_ID must be configured together.' >&2
+            exit 1
+          }
+          [[ "$apple_count" = 0 || "$certificate_count" = 3 ]] || {
+            echo 'Notarization credentials require a Developer ID signing certificate.' >&2
+            exit 1
+          }
+
+      - name: Build and test universal native Release targets
+        run: |
+          node scripts/build/native-build.mjs --preset macos-universal --fresh
+          archs="$(lipo -archs build/ballistics_cli)"
+          echo "$archs" | grep -q x86_64
+          echo "$archs" | grep -q arm64
+
+      - name: Verify the macOS interaction budget
+        run: |
+          ./build/ballistics_benchmarks --iterations 5 --output build/validation/benchmark.json
+          npm run performance:assess -- \
+            --benchmark build/validation/benchmark.json \
+            --engine build/stage/bin/ballistics_cli \
+            --output build/validation/interaction-performance.json \
+            --iterations 5
+          npm run performance:trend -- \
+            --benchmark build/validation/benchmark.json \
+            --history benchmarks/history.json \
+            --output build/validation/benchmark-trend.json \
+            --markdown build/validation/benchmark-trend.md
+          npm run validation:summary
+          npm run validation:summary:check
+
+      - name: Run renderer and release-integrity tests
+        run: npm test
+
+      - name: Generate application icon
+        run: |
+          brew install librsvg
+          bash scripts/make-icns.sh
+
+      - name: Build universal macOS disk image
+        run: |
+          npm run format:check
+          npm run native:verify-stage -- --platform macos
+          if [[ -n "$CSC_LINK" ]]; then
+            codesign --force --options runtime --timestamp --sign "$MACOS_IDENTITY" build/stage/bin/ballistics_cli
+            npm run build
+            npx --no-install electron-builder --mac --universal --publish never \
+              --config.mac.identity="$MACOS_IDENTITY"
+          else
+            npm run package:mac
+          fi
+
+      - name: Verify architecture and smoke-test packaged application
+        run: |
+          app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
+          [[ -n "$app" ]]
+          for binary in \
+            "$app/Contents/MacOS/Ballistics Workbench" \
+            "$app/Contents/Resources/bin/ballistics_cli"; do
+            archs="$(lipo -archs "$binary")"
+            echo "$archs" | grep -q x86_64
+            echo "$archs" | grep -q arm64
+          done
+          "$app/Contents/MacOS/Ballistics Workbench" --smoke-test
+          node scripts/e2e/packaged-ui-smoke.mjs \
+            --executable "$app/Contents/MacOS/Ballistics Workbench" \
+            --output outputs/ui-smoke/macos
+
+      - name: Verify signing and notarize when credentials are available
+        id: signature
+        run: |
+          app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
+          dmg="$(find outputs/installer -maxdepth 1 -name '*.dmg' -type f | head -n1)"
+          [[ -n "$app" && -n "$dmg" ]]
+          signed=false
+          notarized=false
+          if [[ -n "$CSC_LINK" ]]; then
+            codesign --verify --deep --strict --verbose=2 "$app"
+            signed=true
+          fi
+          if [[ -n "$APPLE_ID" ]]; then
+            xcrun notarytool submit "$dmg" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" \
+              --wait
+            xcrun stapler staple "$dmg"
+            xcrun stapler validate "$dmg"
+            notarized=true
+          fi
+          echo "signed=$signed" >> "$GITHUB_OUTPUT"
+          echo "notarized=$notarized" >> "$GITHUB_OUTPUT"
+
+      - name: Record macOS toolchain
+        run: |
+          compiler="$(c++ --version | head -n1)"
+          cmake_version="$(cmake --version | head -n1)"
+          electron="$(node -p "require('./package.json').devDependencies.electron")"
+          builder="$(node -p "require('./package.json').devDependencies['electron-builder']")"
+          node scripts/release/write-toolchain-fragment.mjs \
+            --output outputs/release-fragments/macos-toolchain.json \
+            --platform macos \
+            --runner macos-latest \
+            --architecture arm64+x86_64 \
+            --compiler "$compiler" \
+            --cmake "$cmake_version" \
+            --node "$(node --version)" \
+            --npm "$(npm --version)" \
+            --electron "$electron" \
+            --electron-builder "$builder" \
+            --signed "${{ steps.signature.outputs.signed }}" \
+            --notarized "${{ steps.signature.outputs.notarized }}" \
+            --notes 'Developer ID signing and Apple notarization are enforced when credentials are configured.'
+
+      - name: Stage macOS release inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: |
+            outputs/installer/*.dmg
+            outputs/release-fragments/macos-toolchain.json
+          if-no-files-found: error
+          retention-days: 14
+
+  linux:
+    needs: verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the immutable tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build and test native Linux targets
+        run: node scripts/build/native-build.mjs --preset linux-gcc --fresh
+
+      - name: Verify Linux interaction budget and benchmark trend
+        run: |
+          ./build/ballistics_benchmarks --iterations 5 --output build/validation/benchmark.json
+          npm run performance:assess -- \
+            --benchmark build/validation/benchmark.json \
+            --engine build/stage/bin/ballistics_cli \
+            --output build/validation/interaction-performance.json \
+            --iterations 5
+          npm run performance:trend -- \
+            --benchmark build/validation/benchmark.json \
+            --history benchmarks/history.json \
+            --output build/validation/benchmark-trend.json \
+            --markdown build/validation/benchmark-trend.md
+          npm run validation:summary
+          npm run validation:summary:check
+
+      - name: Test, format-check, package, and smoke-test Linux application
+        run: |
+          npm test
+          npm run format:check
+          npm run package:linux
+          outputs/installer/linux-unpacked/ballistics-workbench --smoke-test --no-sandbox
+          xvfb-run --auto-servernum node scripts/e2e/packaged-ui-smoke.mjs \
+            --executable outputs/installer/linux-unpacked/ballistics-workbench \
+            --output outputs/ui-smoke/linux \
+            --disable-sandbox
+
+      - name: Record Linux toolchain
+        run: |
+          compiler="$(c++ --version | head -n1)"
+          cmake_version="$(cmake --version | head -n1)"
+          electron="$(node -p "require('./package.json').devDependencies.electron")"
+          builder="$(node -p "require('./package.json').devDependencies['electron-builder']")"
+          node scripts/release/write-toolchain-fragment.mjs \
+            --output outputs/release-fragments/linux-toolchain.json \
+            --platform linux \
+            --runner ubuntu-latest \
+            --architecture x64 \
+            --compiler "$compiler" \
+            --cmake "$cmake_version" \
+            --node "$(node --version)" \
+            --npm "$(npm --version)" \
+            --electron "$electron" \
+            --electron-builder "$builder" \
+            --signed false \
+            --notarized false \
+            --notes 'Linux AppImage and tar.gz packages are unsigned and validated on Ubuntu x64.'
+
+      - name: Stage Linux release inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: |
+            outputs/installer/*.AppImage
+            outputs/installer/*.tar.gz
+            outputs/release-fragments/linux-toolchain.json
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: [verify, windows, macos, linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out the immutable tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.tag }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Download platform release inputs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-input
+
+      - name: Assemble checksums, SBOM, licenses, and release manifest
+        run: |
+          node scripts/release/generate-release-assets.mjs \
+            --artifacts release-input \
+            --output outputs/release \
+            --tag '${{ needs.verify.outputs.tag }}' \
+            --commit '${{ needs.verify.outputs.commit }}' \
+            --repository '${{ github.repository }}' \
+            --ref 'refs/tags/${{ needs.verify.outputs.tag }}' \
+            --generated-at '${{ needs.verify.outputs.generated_at }}' \
+            --toolchain release-input/release-windows/windows-toolchain.json \
+            --toolchain release-input/release-macos/macos-toolchain.json \
+            --toolchain release-input/release-linux/linux-toolchain.json
+          npm run release:verify-assets -- --directory outputs/release
+
+      - name: Upload final release bundle for retention
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ needs.verify.outputs.version }}
+          path: outputs/release/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub release
+        env:
+          WINDOWS_SIGNED: ${{ needs.windows.outputs.signed }}
+          MACOS_SIGNED: ${{ needs.macos.outputs.signed }}
+          MACOS_NOTARIZED: ${{ needs.macos.outputs.notarized }}
+          RELEASE_TAG: ${{ needs.verify.outputs.tag }}
+        run: |
+          prerelease=false
+          signing_note='Windows Authenticode and macOS Developer ID/notarization checks passed.'
+          if [[ "$WINDOWS_SIGNED" != true || "$MACOS_SIGNED" != true || "$MACOS_NOTARIZED" != true ]]; then
+            prerelease=true
+            signing_note='Signing credentials were incomplete or unavailable. These artifacts are a pre-release. Inspect release-manifest.json before use.'
+          fi
+          arguments=(
+            "$RELEASE_TAG"
+            outputs/release/*
+            --verify-tag
+            --title "Ballistics Workbench ${RELEASE_TAG#v}"
+            --generate-notes
+            --notes "$signing_note SHA256SUMS.txt, the CycloneDX SBOM, dependency-license inventory, and traceable release manifest are attached."
+          )
+          [[ "$prerelease" = true ]] && arguments+=(--prerelease)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" outputs/release/* --clobber
+            gh release edit "$RELEASE_TAG" --prerelease="$prerelease"
+          else
+            gh release create "${arguments[@]}"
+          fi

@@ -1,0 +1,71 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/validation-source.schema.json",
+    "title": "Ballistics Workbench validation source",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "id",
+        "kind",
+        "path",
+        "source",
+        "retrieved",
+        "redistribution",
+        "sha256"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "kind": {
+            "enum": [
+                "reference_drag_curve",
+                "reference_drag_function",
+                "atmosphere_reference",
+                "manufacturer_table",
+                "manufacturer_attributed_table",
+                "secondary_publication",
+                "measured_velocity",
+                "measured_trajectory",
+                "metadata_only"
+            ]
+        },
+        "path": { "type": "string", "minLength": 1 },
+        "sourceQualification": { "type": "string", "minLength": 1 },
+        "crossChecks": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+        },
+        "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "publisher", "locator"],
+            "properties": {
+                "title": { "type": "string", "minLength": 1 },
+                "author": { "type": ["string", "null"] },
+                "publisher": { "type": "string", "minLength": 1 },
+                "editionOrVersion": { "type": ["string", "null"] },
+                "publicationDate": { "type": ["string", "null"] },
+                "locator": { "type": "string", "minLength": 1 },
+                "archivedLocator": { "type": ["string", "null"] }
+            }
+        },
+        "retrieved": { "type": "string", "format": "date" },
+        "units": { "type": "object", "additionalProperties": { "type": "string" } },
+        "normalization": { "type": "string" },
+        "uncertainty": { "type": ["string", "null"] },
+        "redistribution": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["status", "note"],
+            "properties": {
+                "status": {
+                    "enum": ["permitted", "numerical_facts_only", "metadata_only", "unknown"]
+                },
+                "note": { "type": "string", "minLength": 1 }
+            }
+        },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    }
+}

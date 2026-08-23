@@ -1,0 +1,136 @@
+{
+    "version": 5,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 24,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "release-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/stage",
+                "BALLISTICS_WARNINGS_AS_ERRORS": true,
+                "BALLISTICS_ENABLE_SANITIZERS": false
+            }
+        },
+        {
+            "name": "windows-msvc",
+            "displayName": "Windows x64 Release (MSVC)",
+            "description": "Canonical Windows x64 Ninja build with MSVC warnings as errors.",
+            "inherits": "release-base",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux-gcc",
+            "displayName": "Linux Release (GCC)",
+            "description": "Canonical Linux GCC build with warnings as errors.",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "g++"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-clang",
+            "displayName": "Linux Release (Clang)",
+            "description": "Independent Clang build with warnings as errors.",
+            "inherits": "release-base",
+            "binaryDir": "${sourceDir}/build/clang",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/clang-stage"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-sanitizers",
+            "displayName": "Linux ASan + UBSan (Clang)",
+            "description": "Clang RelWithDebInfo build with AddressSanitizer and UndefinedBehaviorSanitizer.",
+            "inherits": "release-base",
+            "binaryDir": "${sourceDir}/build/sanitizers",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/sanitizers-stage",
+                "BALLISTICS_ENABLE_SANITIZERS": true,
+                "BALLISTICS_ENABLE_FUZZING": true
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "macos-universal",
+            "displayName": "macOS Universal Release (AppleClang)",
+            "description": "Canonical arm64 and x86_64 macOS build with warnings as errors.",
+            "inherits": "release-base",
+            "cacheVariables": {
+                "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        }
+    ],
+    "buildPresets": [
+        { "name": "windows-msvc", "configurePreset": "windows-msvc" },
+        { "name": "linux-gcc", "configurePreset": "linux-gcc" },
+        { "name": "linux-clang", "configurePreset": "linux-clang" },
+        { "name": "linux-sanitizers", "configurePreset": "linux-sanitizers" },
+        { "name": "macos-universal", "configurePreset": "macos-universal" }
+    ],
+    "testPresets": [
+        {
+            "name": "windows-msvc",
+            "configurePreset": "windows-msvc",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        },
+        {
+            "name": "linux-gcc",
+            "configurePreset": "linux-gcc",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        },
+        {
+            "name": "linux-clang",
+            "configurePreset": "linux-clang",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        },
+        {
+            "name": "linux-sanitizers",
+            "configurePreset": "linux-sanitizers",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        },
+        {
+            "name": "macos-universal",
+            "configurePreset": "macos-universal",
+            "output": { "outputOnFailure": true },
+            "execution": { "noTestsAction": "error" }
+        }
+    ]
+}

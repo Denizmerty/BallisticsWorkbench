@@ -1,99 +1,143 @@
 {
-  "name": "ballistics-workbench",
-  "version": "1.0.2",
-  "description": "Windows and macOS external-ballistics calculator with a C++20 numerical core.",
-  "author": "Deniz Mert Yayla <denizmerty@gmail.com>",
-  "license": "GPL-3.0-or-later",
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Denizmerty/BallisticsWorkbench.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Denizmerty/BallisticsWorkbench/issues"
-  },
-  "homepage": "https://github.com/Denizmerty/BallisticsWorkbench#readme",
-  "type": "module",
-  "main": "dist-electron/main.js",
-  "scripts": {
-    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron . --dev\"",
-    "build:web": "tsc -b && vite build",
-    "build": "npm run build:web && tsc -p src/Ballistics.Desktop/electron/tsconfig.json",
-    "format": "scripts\\format.cmd",
-    "format:check": "scripts\\format-check.cmd",
-    "package:win": "npm run build && electron-builder --win nsis --publish never",
-    "package:mac": "npm run build && electron-builder --mac --universal --publish never",
-    "start": "electron .",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
-  },
-  "devDependencies": {
-    "@types/node": "26.1.2",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
-    "@vitejs/plugin-react": "6.0.5",
-    "concurrently": "10.0.4",
-    "electron": "43.3.0",
-    "electron-builder": "26.15.3",
-    "prettier": "3.6.2",
-    "typescript": "7.0.2",
-    "vite": "8.2.0",
-    "vitest": "3.2.7",
-    "wait-on": "9.1.0"
-  },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
-  "build": {
-    "appId": "com.ballisticsworkbench.desktop",
-    "productName": "Ballistics Workbench",
-    "directories": {
-      "output": "outputs/installer"
+    "name": "ballistics-workbench",
+    "version": "1.0.2",
+    "description": "Cross-platform external-ballistics calculator with a C++20 numerical core.",
+    "author": "Deniz Mert Yayla <denizmerty@gmail.com>",
+    "license": "GPL-3.0-or-later",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Denizmerty/BallisticsWorkbench.git"
     },
-    "files": [
-      "assets/icon.ico",
-      "dist/**/*",
-      "dist-electron/**/*",
-      "src/Ballistics.Desktop/electron/preload.cjs",
-      "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "LICENSE",
-        "to": "LICENSE.txt"
-      }
-    ],
-    "win": {
-      "icon": "assets/icon.ico",
-      "target": "nsis",
-      "artifactName": "Ballistics-Workbench-${version}-Setup.${ext}",
-      "extraResources": [
-        {
-          "from": "x64/Release/ballistics_cli.exe",
-          "to": "bin/ballistics_cli.exe"
+    "bugs": {
+        "url": "https://github.com/Denizmerty/BallisticsWorkbench/issues"
+    },
+    "homepage": "https://github.com/Denizmerty/BallisticsWorkbench#readme",
+    "type": "module",
+    "main": "dist-electron/electron/main.js",
+    "scripts": {
+        "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron . --dev\"",
+        "build:web": "npm run identity:check && npm run atmosphere:check && tsc -b && vite build",
+        "build": "node scripts/build/clean-desktop-output.mjs && npm run build:web && tsc -p src/Ballistics.Desktop/electron/tsconfig.json",
+        "identity:generate": "node scripts/product/product-metadata.mjs --write",
+        "identity:check": "node scripts/product/product-metadata.mjs --check",
+        "protocol:generate": "node scripts/protocol/generate-protocol-structure.mjs",
+        "protocol:check": "node scripts/protocol/generate-protocol-structure.mjs --check",
+        "atmosphere:generate": "node scripts/product/generate-atmosphere-conversions.mjs",
+        "atmosphere:check": "node scripts/product/generate-atmosphere-conversions.mjs --check",
+        "lint:native": "node scripts/build/run-clang-tidy.mjs",
+        "fuzz:protocol": "node scripts/fuzz/run-protocol-fuzz.mjs",
+        "batch:run": "node scripts/batch/run-scenarios.mjs",
+        "format": "node scripts/format/format-code.mjs",
+        "format:check": "node scripts/format/format-code.mjs --check",
+        "performance:assess": "node scripts/performance/assess-interaction-budget.mjs",
+        "performance:trend": "node scripts/performance/benchmark-history.mjs",
+        "native:build": "node scripts/build/native-build.mjs",
+        "native:windows": "node scripts/build/native-build.mjs --preset windows-msvc --fresh",
+        "native:linux": "node scripts/build/native-build.mjs --preset linux-gcc --fresh",
+        "native:macos": "node scripts/build/native-build.mjs --preset macos-universal --fresh",
+        "native:verify-stage": "node scripts/build/verify-native-stage.mjs",
+        "validate:artifacts": "node validation/validate-artifacts.mjs",
+        "validation:docs": "node validation/reference/generate-validation-evidence.mjs --source-output docs/generated/VALIDATION_EVIDENCE.md",
+        "validation:docs:check": "npm run validation:docs -- --check",
+        "validation:summary": "node validation/reference/generate-validation-evidence.mjs",
+        "validation:summary:check": "node validation/reference/generate-validation-evidence.mjs --check",
+        "release:verify-version": "node scripts/release/verify-version.mjs",
+        "release:supply-chain": "node scripts/release/generate-supply-chain.mjs",
+        "release:verify-assets": "node scripts/release/verify-release-assets.mjs",
+        "package:win": "npm run native:verify-stage -- --platform windows && npm run build && electron-builder --win nsis --publish never",
+        "package:mac": "npm run native:verify-stage -- --platform macos && npm run build && electron-builder --mac --universal --publish never",
+        "package:linux": "npm run native:verify-stage -- --platform linux && npm run build && electron-builder --linux AppImage tar.gz --x64 --publish never",
+        "test:e2e:packaged": "node scripts/e2e/packaged-ui-smoke.mjs",
+        "test:e2e:win": "npm run test:e2e:packaged -- --executable \"outputs/installer/win-unpacked/Ballistics Workbench.exe\" --output outputs/ui-smoke/windows",
+        "start": "electron .",
+        "test": "npm run identity:check && npm run atmosphere:check && vitest run"
+    },
+    "dependencies": {
+        "react": "19.2.8",
+        "react-dom": "19.2.8"
+    },
+    "devDependencies": {
+        "@types/node": "26.1.2",
+        "@types/react": "19.2.18",
+        "@types/react-dom": "19.2.4",
+        "@vitejs/plugin-react": "6.0.5",
+        "ajv": "^8.20.0",
+        "concurrently": "10.0.4",
+        "electron": "43.3.0",
+        "electron-builder": "26.15.3",
+        "prettier": "3.6.2",
+        "typescript": "7.0.2",
+        "vite": "8.2.0",
+        "vitest": "3.2.7",
+        "wait-on": "9.1.0"
+    },
+    "engines": {
+        "node": ">=22",
+        "npm": ">=10"
+    },
+    "build": {
+        "appId": "com.ballisticsworkbench.desktop",
+        "productName": "Ballistics Workbench",
+        "directories": {
+            "output": "outputs/installer"
+        },
+        "files": [
+            "assets/icon.ico",
+            "assets/icon.png",
+            "dist/**/*",
+            "dist-electron/**/*",
+            "src/Ballistics.Desktop/electron/preload.cjs",
+            "package.json"
+        ],
+        "extraResources": [
+            {
+                "from": "LICENSE",
+                "to": "LICENSE.txt"
+            }
+        ],
+        "win": {
+            "icon": "assets/icon.ico",
+            "target": "nsis",
+            "artifactName": "Ballistics-Workbench-${version}-Setup.${ext}",
+            "extraResources": [
+                {
+                    "from": "build/stage/bin/ballistics_cli.exe",
+                    "to": "bin/ballistics_cli.exe"
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true
+        },
+        "mac": {
+            "icon": "assets/icon.icns",
+            "target": "dmg",
+            "category": "public.app-category.utilities",
+            "artifactName": "Ballistics-Workbench-${version}-${arch}.${ext}",
+            "identity": null,
+            "extraResources": [
+                {
+                    "from": "build/stage/bin/ballistics_cli",
+                    "to": "bin/ballistics_cli"
+                }
+            ]
+        },
+        "linux": {
+            "icon": "assets/icon.png",
+            "target": [
+                "AppImage",
+                "tar.gz"
+            ],
+            "category": "Science",
+            "artifactName": "Ballistics-Workbench-${version}-linux-${arch}.${ext}",
+            "extraResources": [
+                {
+                    "from": "build/stage/bin/ballistics_cli",
+                    "to": "bin/ballistics_cli"
+                }
+            ]
         }
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    },
-    "mac": {
-      "icon": "assets/icon.icns",
-      "target": "dmg",
-      "category": "public.app-category.utilities",
-      "artifactName": "Ballistics-Workbench-${version}-${arch}.${ext}",
-      "identity": null,
-      "extraResources": [
-        {
-          "from": "build/ballistics_cli",
-          "to": "bin/ballistics_cli"
-        }
-      ]
     }
-  }
 }

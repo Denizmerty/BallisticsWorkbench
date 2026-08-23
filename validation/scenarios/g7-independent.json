@@ -1,0 +1,178 @@
+{
+    "schemaVersion": 1,
+    "id": "g7-independent-rk4-v1",
+    "reference": {
+        "implementation": "validation/reference/generate-g7-reference.mjs",
+        "dragData": "validation/sources/g7-py-ballisticcalc-2.2.10.csv",
+        "integrator": "fixed-distance classical RK4 over [y, vx, vy, time]",
+        "stepM": 0.002,
+        "generatedAt": "2026-08-15"
+    },
+    "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 0,
+        "headwindMps": 0,
+        "crosswindMps": 0
+    },
+    "aerodynamicChecks": [
+        {
+            "mach": 0.9,
+            "dragCoefficient": 0.1464,
+            "ballisticCoefficient": 0.25,
+            "accelerationMps2": 37.61098122695968
+        },
+        {
+            "mach": 1,
+            "dragCoefficient": 0.3803,
+            "ballisticCoefficient": 0.25,
+            "accelerationMps2": 120.61876948502979
+        },
+        {
+            "mach": 1.2,
+            "dragCoefficient": 0.3884,
+            "ballisticCoefficient": 0.25,
+            "accelerationMps2": 177.39046883486517
+        },
+        {
+            "mach": 2,
+            "dragCoefficient": 0.298,
+            "ballisticCoefficient": 0.25,
+            "accelerationMps2": 378.063563571274
+        },
+        {
+            "mach": 3,
+            "dragCoefficient": 0.2424,
+            "ballisticCoefficient": 0.25,
+            "accelerationMps2": 691.9324415160163
+        }
+    ],
+    "scenarios": [
+        {
+            "id": "g7-supersonic",
+            "regime": "supersonic",
+            "muzzleVelocityMps": 900,
+            "ballisticCoefficient": 0.3,
+            "maximumDistanceM": 500,
+            "tolerances": {
+                "velocityRelative": 0.001,
+                "timeRelative": 0.001,
+                "positionAbsoluteM": 0.0005
+            },
+            "samples": [
+                {
+                    "distanceM": 100,
+                    "speedMps": 846.9949840036959,
+                    "timeS": 0.11453421597898959,
+                    "verticalPositionM": -0.06304023149036851
+                },
+                {
+                    "distanceM": 200,
+                    "speedMps": 795.5901640186336,
+                    "timeS": 0.2363543478984914,
+                    "verticalPositionM": -0.26299500389533004
+                },
+                {
+                    "distanceM": 300,
+                    "speedMps": 745.9069397196362,
+                    "timeS": 0.36616873572208614,
+                    "verticalPositionM": -0.6181404579176326
+                },
+                {
+                    "distanceM": 400,
+                    "speedMps": 698.0178624326905,
+                    "timeS": 0.5047620923124344,
+                    "verticalPositionM": -1.1498551166464397
+                },
+                {
+                    "distanceM": 500,
+                    "speedMps": 651.9998893379113,
+                    "timeS": 0.6530043929481236,
+                    "verticalPositionM": -1.8832175391759807
+                }
+            ]
+        },
+        {
+            "id": "g7-transonic",
+            "regime": "transonic",
+            "muzzleVelocityMps": 450,
+            "ballisticCoefficient": 0.12,
+            "maximumDistanceM": 250,
+            "tolerances": {
+                "velocityRelative": 0.001,
+                "timeRelative": 0.001,
+                "positionAbsoluteM": 0.0005
+            },
+            "samples": [
+                {
+                    "distanceM": 50,
+                    "speedMps": 403.75770431601757,
+                    "timeS": 0.1173016952577887,
+                    "verticalPositionM": -0.06509396158786036
+                },
+                {
+                    "distanceM": 100,
+                    "speedMps": 360.40469071263567,
+                    "timeS": 0.2484030958438908,
+                    "verticalPositionM": -0.2813348303698936
+                },
+                {
+                    "distanceM": 150,
+                    "speedMps": 326.0829135940558,
+                    "timeS": 0.39495704287980116,
+                    "verticalPositionM": -0.6869634891915397
+                },
+                {
+                    "distanceM": 200,
+                    "speedMps": 309.74581356634,
+                    "timeS": 0.5525786106257384,
+                    "verticalPositionM": -1.3213640817579935
+                },
+                {
+                    "distanceM": 250,
+                    "speedMps": 297.3536794983476,
+                    "timeS": 0.7174330115373643,
+                    "verticalPositionM": -2.2111354819236975
+                }
+            ]
+        },
+        {
+            "id": "g7-subsonic",
+            "regime": "subsonic",
+            "muzzleVelocityMps": 300,
+            "ballisticCoefficient": 0.2,
+            "maximumDistanceM": 200,
+            "tolerances": {
+                "velocityRelative": 0.001,
+                "timeRelative": 0.001,
+                "positionAbsoluteM": 0.0005
+            },
+            "samples": [
+                {
+                    "distanceM": 50,
+                    "speedMps": 293.1090529187834,
+                    "timeS": 0.16863307385662427,
+                    "verticalPositionM": -0.13836249883711316
+                },
+                {
+                    "distanceM": 100,
+                    "speedMps": 286.6232446777258,
+                    "timeS": 0.34115784827944706,
+                    "verticalPositionM": -0.5621099656025468
+                },
+                {
+                    "distanceM": 150,
+                    "speedMps": 280.4470251582922,
+                    "timeS": 0.517543320571885,
+                    "verticalPositionM": -1.2843458966885115
+                },
+                {
+                    "distanceM": 200,
+                    "speedMps": 274.5188933918316,
+                    "timeS": 0.6977921042045013,
+                    "verticalPositionM": -2.3184233020175076
+                }
+            ]
+        }
+    ]
+}

@@ -1,9 +1,32 @@
 {
-  "printWidth": 100,
-  "singleQuote": true,
-  "trailingComma": "all",
-  "endOfLine": "lf",
-  "tabWidth": 2,
-  "useTabs": false,
-  "semi": true
+    "printWidth": 100,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "arrowParens": "always",
+    "proseWrap": "preserve",
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": ["*.yml", "*.yaml"],
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "package-lock.json",
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "validation/scenarios/independent-flight-matrix.json",
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
 }

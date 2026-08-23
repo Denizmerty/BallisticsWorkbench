@@ -1,0 +1,47 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/batch/v1/schema.json",
+    "title": "Ballistics Workbench batch scenario document v1",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schemaVersion", "scenarios"],
+    "properties": {
+        "schemaVersion": {
+            "const": 1
+        },
+        "scenarios": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 128,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "request"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9._:-]{1,96}$"
+                    },
+                    "request": {
+                        "type": "object",
+                        "required": ["protocolVersion", "requestId", "scenario", "customLoads"],
+                        "properties": {
+                            "protocolVersion": {
+                                "type": "integer"
+                            },
+                            "requestId": {
+                                "type": "string"
+                            },
+                            "scenario": {
+                                "type": "object"
+                            },
+                            "customLoads": {
+                                "type": "array"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

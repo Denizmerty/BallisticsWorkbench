@@ -8,44 +8,56 @@ import { pointAt } from './trajectory';
  * relative to the line of sight.
  */
 export type SightGeometry = {
-  sightHeightM: number;
-  zeroM: number;
-  dropAtZeroM: number;
+    sightHeightM: number;
+    zeroM: number;
+    dropAtZeroM: number;
+    available: boolean;
 };
 
 export function sightGeometry(
-  load: Load,
-  sightHeights: { shotgunSightM: number; rifleSightM: number },
-  zeros: { shotgunZeroM: number; rifleZeroM: number },
+    load: Load,
+    sightHeights: { shotgunSightM: number; rifleSightM: number },
+    zeros: { shotgunZeroM: number; rifleZeroM: number },
 ): SightGeometry {
-  const rifle = load.firearmGroup === 'rifle';
-  const sightHeightM = rifle ? sightHeights.rifleSightM : sightHeights.shotgunSightM;
-  const zeroM = rifle ? zeros.rifleZeroM : zeros.shotgunZeroM;
-  return { sightHeightM, zeroM, dropAtZeroM: pointAt(load.points, zeroM)?.dropM ?? 0 };
+    const rifle = load.firearmGroup === 'rifle';
+    const sightHeightM =
+        load.sightHeightM ?? (rifle ? sightHeights.rifleSightM : sightHeights.shotgunSightM);
+    const zeroM = load.sightZeroM ?? (rifle ? zeros.rifleZeroM : zeros.shotgunZeroM);
+    const nativeDrop = load.dropAtSightZeroM;
+    const sampledDrop = pointAt(load.points, zeroM)?.dropM;
+    const available =
+        load.zeroingStatus === 'complete' &&
+        nativeDrop !== null &&
+        (nativeDrop !== undefined || sampledDrop !== undefined);
+    return { sightHeightM, zeroM, dropAtZeroM: nativeDrop ?? sampledDrop ?? 0, available };
 }
 
 /**
- * Bullet path relative to the line of sight (positive above, negative below), using the same
- * small-angle superposition as the native maximum-point-blank-range routine. `dropHereM` and
- * `dropAtZeroM` are bore drops (positive downward).
+ * Compatibility path for results that predate native `pathM`. Current protocol results carry the
+ * sight-relative path integrated at the solved bore elevation. `dropHereM` and `dropAtZeroM` are
+ * legacy bore drops (positive downward).
  */
 export function sightPathM(dropHereM: number, distanceM: number, geometry: SightGeometry): number {
-  const { sightHeightM, zeroM, dropAtZeroM } = geometry;
-  if (zeroM <= 0) return -dropHereM;
-  return -dropHereM - sightHeightM + (dropAtZeroM + sightHeightM) * (distanceM / zeroM);
+    const { sightHeightM, zeroM, dropAtZeroM } = geometry;
+    if (!geometry.available) return Number.NaN;
+    if (zeroM <= 0) return -dropHereM;
+    return -dropHereM - sightHeightM + (dropAtZeroM + sightHeightM) * (distanceM / zeroM);
 }
 
-/** Elevation come-up in minutes of angle (positive means hold/dial up). */
-export function holdoverMoa(pathM: number, distanceM: number): number {
-  return distanceM > 0 ? (-pathM / distanceM) * MOA_PER_RAD : 0;
+/** Converts a native elevation come-up angle to minutes of angle. */
+export function holdoverMoa(holdoverRad: number): number {
+    return holdoverRad * MOA_PER_RAD;
 }
 
-/** Elevation come-up in milliradians (positive means hold/dial up). */
-export function holdoverMil(pathM: number, distanceM: number): number {
-  return distanceM > 0 ? (-pathM / distanceM) * MIL_PER_RAD : 0;
+/** Converts a native elevation come-up angle to milliradians. */
+export function holdoverMil(holdoverRad: number): number {
+    return holdoverRad * MIL_PER_RAD;
 }
 
 /** Convenience: path at a specific point given its already-known bore drop. */
 export function sightPathAt(point: Point, geometry: SightGeometry): number {
-  return sightPathM(point.dropM, point.distanceM, geometry);
+    if (!geometry.available) return Number.NaN;
+    return Number.isFinite(point.pathM)
+        ? point.pathM
+        : sightPathM(point.dropM, point.distanceM, geometry);
 }

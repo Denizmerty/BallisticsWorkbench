@@ -1,0 +1,47 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/product-metadata.schema.json",
+    "title": "Ballistics Workbench product metadata",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "$schema",
+        "applicationVersion",
+        "modelVersion",
+        "protocolVersion",
+        "profileInterchangeVersion",
+        "dragDataInterchangeVersion",
+        "settingsSchemaVersion",
+        "limits"
+    ],
+    "properties": {
+        "$schema": { "const": "./product-metadata.schema.json" },
+        "applicationVersion": {
+            "type": "string",
+            "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+        },
+        "modelVersion": { "type": "string", "pattern": "^[0-9]{4}\\.[0-9]{2}\\.[0-9]+$" },
+        "protocolVersion": { "type": "integer", "minimum": 1 },
+        "profileInterchangeVersion": { "type": "integer", "minimum": 1 },
+        "dragDataInterchangeVersion": { "type": "integer", "minimum": 1 },
+        "settingsSchemaVersion": { "type": "integer", "minimum": 2 },
+        "limits": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "calculationRequestBytes",
+                "engineResponseBytes",
+                "profileDocumentBytes",
+                "dragDataDocumentBytes",
+                "csvExportBytes"
+            ],
+            "properties": {
+                "calculationRequestBytes": { "type": "integer", "minimum": 1024 },
+                "engineResponseBytes": { "type": "integer", "minimum": 1024 },
+                "profileDocumentBytes": { "type": "integer", "minimum": 1024 },
+                "dragDataDocumentBytes": { "type": "integer", "minimum": 1024 },
+                "csvExportBytes": { "type": "integer", "minimum": 1024 }
+            }
+        }
+    }
+}

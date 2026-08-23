@@ -1,0 +1,21 @@
+Checks: >-
+  -*,
+  clang-analyzer-*,
+  bugprone-branch-clone,
+  bugprone-infinite-loop,
+  bugprone-macro-parentheses,
+  bugprone-macro-repeated-side-effects,
+  bugprone-multiple-statement-macro,
+  bugprone-suspicious-enum-usage,
+  bugprone-suspicious-memset-usage,
+  bugprone-suspicious-missing-comma,
+  bugprone-suspicious-semicolon,
+  bugprone-suspicious-string-compare,
+  performance-*,
+  -performance-enum-size
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*[/\\](src|benchmarks)[/\\].*'
+SystemHeaders: false
+FormatStyle: file
+ExtraArgs:
+  - -Wno-unused-command-line-argument

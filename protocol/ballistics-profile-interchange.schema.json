@@ -1,0 +1,1155 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/ballistics-profile-interchange.schema.json",
+    "title": "Ballistics Workbench profile interchange",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["format", "schemaVersion", "exportedAt", "unitConvention", "profiles"],
+    "properties": {
+        "format": {
+            "const": "ballistics-workbench-profile-set"
+        },
+        "schemaVersion": {
+            "const": 4
+        },
+        "exportedAt": {
+            "$ref": "#/$defs/timestamp"
+        },
+        "unitConvention": {
+            "const": "SI"
+        },
+        "profiles": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
+            "items": {
+                "$ref": "#/$defs/profile"
+            }
+        }
+    },
+    "$defs": {
+        "timestamp": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 40,
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{3})?Z$"
+        },
+        "profileId": {
+            "type": "string",
+            "minLength": 9,
+            "maxLength": 128,
+            "pattern": "^profile:"
+        },
+        "profileName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": ".*\\S.*"
+        },
+        "pressureSource": {
+            "enum": ["stationPressure", "pressureAltitude", "altimeterSetting"]
+        },
+        "windLayer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "axis",
+                "startM",
+                "endM",
+                "startHeadwindMps",
+                "endHeadwindMps",
+                "startCrosswindMps",
+                "endCrosswindMps"
+            ],
+            "properties": {
+                "axis": {
+                    "enum": ["height", "downrange"]
+                },
+                "startM": {
+                    "type": "number",
+                    "minimum": -1000,
+                    "maximum": 2000
+                },
+                "endM": {
+                    "type": "number",
+                    "minimum": -1000,
+                    "maximum": 2000
+                },
+                "startHeadwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "endHeadwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "startCrosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "endCrosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "source": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "temperatureVelocityPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["temperatureC", "multiplier"],
+            "properties": {
+                "temperatureC": {
+                    "type": "number",
+                    "minimum": -60,
+                    "maximum": 60
+                },
+                "multiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                }
+            }
+        },
+        "patternObservation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["rangeM", "diameter90M", "standardUncertaintyM", "shellCount", "role"],
+            "properties": {
+                "rangeM": {
+                    "type": "number"
+                },
+                "diameter90M": {
+                    "type": "number"
+                },
+                "standardUncertaintyM": {
+                    "type": "number"
+                },
+                "shellCount": {
+                    "type": "integer"
+                },
+                "role": {
+                    "enum": ["calibration", "holdout"]
+                }
+            }
+        },
+        "buckshotPattern": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "enabled",
+                "loadId",
+                "choke",
+                "deformationClass",
+                "pelletVelocityStandardDeviationMps",
+                "targetRangeM",
+                "minimumPelletCount",
+                "target",
+                "observations"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "loadId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                },
+                "choke": {
+                    "enum": ["cylinder", "improvedCylinder", "modified", "full", "custom"]
+                },
+                "deformationClass": {
+                    "enum": ["softLead", "hardenedLead", "plated", "buffered", "unknown"]
+                },
+                "pelletVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "targetRangeM": {
+                    "type": "number"
+                },
+                "minimumPelletCount": {
+                    "type": "integer"
+                },
+                "target": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "shape",
+                        "widthM",
+                        "heightM",
+                        "centerHorizontalM",
+                        "centerVerticalM"
+                    ],
+                    "properties": {
+                        "shape": {
+                            "enum": ["circle", "rectangle"]
+                        },
+                        "widthM": {
+                            "type": "number"
+                        },
+                        "heightM": {
+                            "type": "number"
+                        },
+                        "centerHorizontalM": {
+                            "type": "number"
+                        },
+                        "centerVerticalM": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "observations": {
+                    "type": "array",
+                    "maxItems": 64,
+                    "items": {
+                        "$ref": "#/$defs/patternObservation"
+                    }
+                }
+            }
+        },
+        "inputs": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "distanceM",
+                "temperatureC",
+                "pressureHpa",
+                "pressureSource",
+                "pressureAltitudeM",
+                "geometricAltitudeM",
+                "altimeterSettingHpa",
+                "humidityPercent",
+                "headwindMps",
+                "crosswindMps",
+                "altitudeDependentAtmosphere",
+                "useLocalGravity",
+                "coriolisEnabled",
+                "latitudeDeg",
+                "azimuthDeg",
+                "targetInclinationDeg",
+                "targetElevationM",
+                "windLayers",
+                "windProvenance",
+                "vitalZoneM",
+                "shotgunSightM",
+                "rifleSightM",
+                "shotgunZeroM",
+                "rifleZeroM",
+                "shotgunMvMultiplier",
+                "rifleMvMultiplier",
+                "rifleTwistInches",
+                "twistDirection",
+                "shotgunTemperatureVelocityProfile",
+                "rifleTemperatureVelocityProfile",
+                "shotgunTemperatureVelocitySource",
+                "rifleTemperatureVelocitySource",
+                "buckshotPattern"
+            ],
+            "properties": {
+                "distanceM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2000
+                },
+                "temperatureC": {
+                    "type": "number",
+                    "minimum": -60,
+                    "maximum": 60
+                },
+                "pressureHpa": {
+                    "type": "number",
+                    "minimum": 500,
+                    "maximum": 1100
+                },
+                "pressureSource": {
+                    "$ref": "#/$defs/pressureSource"
+                },
+                "pressureAltitudeM": {
+                    "type": "number",
+                    "minimum": -700,
+                    "maximum": 5575
+                },
+                "geometricAltitudeM": {
+                    "type": "number",
+                    "minimum": -500,
+                    "maximum": 6000
+                },
+                "altimeterSettingHpa": {
+                    "type": "number",
+                    "minimum": 800,
+                    "maximum": 1100
+                },
+                "humidityPercent": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "headwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "crosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "altitudeDependentAtmosphere": {
+                    "type": "boolean"
+                },
+                "useLocalGravity": {
+                    "type": "boolean"
+                },
+                "coriolisEnabled": {
+                    "type": "boolean"
+                },
+                "latitudeDeg": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                },
+                "azimuthDeg": {
+                    "type": "number",
+                    "minimum": -360,
+                    "maximum": 360
+                },
+                "targetInclinationDeg": {
+                    "type": "number",
+                    "minimum": -60,
+                    "maximum": 60
+                },
+                "targetElevationM": {
+                    "type": "number",
+                    "minimum": -1732,
+                    "maximum": 1732
+                },
+                "windLayers": {
+                    "type": "array",
+                    "maxItems": 16,
+                    "items": {
+                        "$ref": "#/$defs/windLayer"
+                    }
+                },
+                "windProvenance": {
+                    "type": "string",
+                    "maxLength": 240
+                },
+                "vitalZoneM": {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 2
+                },
+                "shotgunSightM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.25
+                },
+                "rifleSightM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.25
+                },
+                "shotgunZeroM": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 1000
+                },
+                "rifleZeroM": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 1000
+                },
+                "shotgunMvMultiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                },
+                "rifleMvMultiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                },
+                "rifleTwistInches": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                },
+                "twistDirection": {
+                    "enum": [-1, 1]
+                },
+                "shotgunTemperatureVelocityProfile": {
+                    "type": "array",
+                    "maxItems": 12,
+                    "items": {
+                        "$ref": "#/$defs/temperatureVelocityPoint"
+                    }
+                },
+                "rifleTemperatureVelocityProfile": {
+                    "type": "array",
+                    "maxItems": 12,
+                    "items": {
+                        "$ref": "#/$defs/temperatureVelocityPoint"
+                    }
+                },
+                "shotgunTemperatureVelocitySource": {
+                    "type": "string",
+                    "maxLength": 240
+                },
+                "rifleTemperatureVelocitySource": {
+                    "type": "string",
+                    "maxLength": 240
+                },
+                "buckshotPattern": {
+                    "$ref": "#/$defs/buckshotPattern"
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "pressureSource": {
+                                "const": "pressureAltitude"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "pressureAltitudeM": {
+                                "type": "number",
+                                "minimum": -700,
+                                "maximum": 5575
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "pressureSource": {
+                                "const": "altimeterSetting"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "geometricAltitudeM": {
+                                "type": "number",
+                                "minimum": -500,
+                                "maximum": 6000
+                            },
+                            "altimeterSettingHpa": {
+                                "type": "number",
+                                "minimum": 800,
+                                "maximum": 1100
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "environmentData": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "temperatureC",
+                "pressureHpa",
+                "pressureSource",
+                "pressureAltitudeM",
+                "geometricAltitudeM",
+                "altimeterSettingHpa",
+                "humidityPercent",
+                "headwindMps",
+                "crosswindMps",
+                "altitudeDependentAtmosphere",
+                "useLocalGravity",
+                "coriolisEnabled",
+                "latitudeDeg",
+                "azimuthDeg",
+                "windLayers",
+                "windProvenance"
+            ],
+            "properties": {
+                "temperatureC": {
+                    "type": "number",
+                    "minimum": -60,
+                    "maximum": 60
+                },
+                "pressureHpa": {
+                    "type": "number",
+                    "minimum": 500,
+                    "maximum": 1100
+                },
+                "pressureSource": {
+                    "$ref": "#/$defs/pressureSource"
+                },
+                "pressureAltitudeM": {
+                    "type": "number",
+                    "minimum": -700,
+                    "maximum": 5575
+                },
+                "geometricAltitudeM": {
+                    "type": "number",
+                    "minimum": -500,
+                    "maximum": 6000
+                },
+                "altimeterSettingHpa": {
+                    "type": "number",
+                    "minimum": 800,
+                    "maximum": 1100
+                },
+                "humidityPercent": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "headwindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "crosswindMps": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                },
+                "altitudeDependentAtmosphere": {
+                    "type": "boolean"
+                },
+                "useLocalGravity": {
+                    "type": "boolean"
+                },
+                "coriolisEnabled": {
+                    "type": "boolean"
+                },
+                "latitudeDeg": {
+                    "type": "number",
+                    "minimum": -90,
+                    "maximum": 90
+                },
+                "azimuthDeg": {
+                    "type": "number",
+                    "minimum": -360,
+                    "maximum": 360
+                },
+                "windLayers": {
+                    "type": "array",
+                    "maxItems": 16,
+                    "items": {
+                        "$ref": "#/$defs/windLayer"
+                    }
+                },
+                "windProvenance": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "uncertainty": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "enabled",
+                "method",
+                "sampleCount",
+                "seed",
+                "correlations",
+                "shotgunMuzzleVelocityStandardDeviationMps",
+                "rifleMuzzleVelocityStandardDeviationMps",
+                "dragRelativeStandardDeviation",
+                "temperatureStandardDeviationC",
+                "stationPressureStandardDeviationHpa",
+                "headwindStandardDeviationMps",
+                "crosswindStandardDeviationMps",
+                "shotgunZeroRangeStandardDeviationM",
+                "rifleZeroRangeStandardDeviationM"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "method": {
+                    "enum": ["firstOrder", "monteCarlo"]
+                },
+                "sampleCount": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 10000
+                },
+                "seed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                },
+                "correlations": {
+                    "type": "array",
+                    "maxItems": 21,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["first", "second", "coefficient"],
+                        "properties": {
+                            "first": {
+                                "enum": [
+                                    "muzzleVelocity",
+                                    "drag",
+                                    "temperature",
+                                    "stationPressure",
+                                    "headwind",
+                                    "crosswind",
+                                    "zeroRange"
+                                ]
+                            },
+                            "second": {
+                                "enum": [
+                                    "muzzleVelocity",
+                                    "drag",
+                                    "temperature",
+                                    "stationPressure",
+                                    "headwind",
+                                    "crosswind",
+                                    "zeroRange"
+                                ]
+                            },
+                            "coefficient": {
+                                "type": "number",
+                                "exclusiveMinimum": -1,
+                                "exclusiveMaximum": 1
+                            }
+                        }
+                    }
+                },
+                "shotgunMuzzleVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "rifleMuzzleVelocityStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "dragRelativeStandardDeviation": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "temperatureStandardDeviationC": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 30
+                },
+                "stationPressureStandardDeviationHpa": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "headwindStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 50
+                },
+                "crosswindStandardDeviationMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 50
+                },
+                "shotgunZeroRangeStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                },
+                "rifleZeroRangeStandardDeviationM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 200
+                }
+            }
+        },
+        "bcBand": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["minimumVelocityMps", "ballisticCoefficient"],
+            "properties": {
+                "minimumVelocityMps": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2000
+                },
+                "ballisticCoefficient": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 2
+                }
+            }
+        },
+        "machCdPoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mach", "dragCoefficient"],
+            "properties": {
+                "mach": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                },
+                "dragCoefficient": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 5
+                }
+            }
+        },
+        "dragDataMetadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "citation",
+                "sourceUrl",
+                "license",
+                "sourceChecksumSha256",
+                "domainMinimum",
+                "domainMaximum"
+            ],
+            "properties": {
+                "citation": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "sourceUrl": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "license": {
+                    "type": "string",
+                    "maxLength": 200
+                },
+                "sourceChecksumSha256": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "pattern": "^(?:[0-9a-fA-F]{64})?$"
+                },
+                "domainMinimum": {
+                    "type": ["number", "null"],
+                    "minimum": 0,
+                    "maximum": 2000
+                },
+                "domainMaximum": {
+                    "type": ["number", "null"],
+                    "minimum": 0,
+                    "maximum": 2000
+                }
+            }
+        },
+        "customLoad": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "drag",
+                "group",
+                "massG",
+                "mv",
+                "bc",
+                "bcMode",
+                "bcBands",
+                "machCdDiameterMm",
+                "machCdPoints",
+                "dragDataMetadata",
+                "sphereMm",
+                "density",
+                "count",
+                "length",
+                "diameter",
+                "twist"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128,
+                    "pattern": "^custom:"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "pattern": ".*\\S.*"
+                },
+                "drag": {
+                    "enum": ["G1", "G7", "MachCd", "Sphere"]
+                },
+                "group": {
+                    "enum": ["rifle", "shotgun"]
+                },
+                "massG": {
+                    "type": "number"
+                },
+                "mv": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 2000
+                },
+                "bc": {
+                    "type": "number"
+                },
+                "bcMode": {
+                    "enum": ["constant", "velocityBands"]
+                },
+                "bcBands": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 16,
+                    "items": {
+                        "$ref": "#/$defs/bcBand"
+                    }
+                },
+                "machCdDiameterMm": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 50
+                },
+                "machCdPoints": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 64,
+                    "items": {
+                        "$ref": "#/$defs/machCdPoint"
+                    }
+                },
+                "dragDataMetadata": {
+                    "$ref": "#/$defs/dragDataMetadata"
+                },
+                "sphereMm": {
+                    "type": "number"
+                },
+                "density": {
+                    "type": "number"
+                },
+                "count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                },
+                "length": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "diameter": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "twist": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "shotgunFirearmData": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "group",
+                "sightHeightM",
+                "zeroRangeM",
+                "muzzleVelocityMultiplier",
+                "temperatureVelocityProfile",
+                "temperatureVelocitySource"
+            ],
+            "properties": {
+                "group": {
+                    "const": "shotgun"
+                },
+                "sightHeightM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.25
+                },
+                "zeroRangeM": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 1000
+                },
+                "muzzleVelocityMultiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                },
+                "temperatureVelocityProfile": {
+                    "type": "array",
+                    "maxItems": 12,
+                    "items": {
+                        "$ref": "#/$defs/temperatureVelocityPoint"
+                    }
+                },
+                "temperatureVelocitySource": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "rifleFirearmData": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "group",
+                "sightHeightM",
+                "zeroRangeM",
+                "muzzleVelocityMultiplier",
+                "twistInches",
+                "twistDirection",
+                "temperatureVelocityProfile",
+                "temperatureVelocitySource"
+            ],
+            "properties": {
+                "group": {
+                    "const": "rifle"
+                },
+                "sightHeightM": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 0.25
+                },
+                "zeroRangeM": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 1000
+                },
+                "muzzleVelocityMultiplier": {
+                    "type": "number",
+                    "minimum": 0.75,
+                    "maximum": 1.25
+                },
+                "twistInches": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                },
+                "twistDirection": {
+                    "enum": [-1, 1]
+                },
+                "temperatureVelocityProfile": {
+                    "type": "array",
+                    "maxItems": 12,
+                    "items": {
+                        "$ref": "#/$defs/temperatureVelocityPoint"
+                    }
+                },
+                "temperatureVelocitySource": {
+                    "type": "string",
+                    "maxLength": 240
+                }
+            }
+        },
+        "builtInAmmunitionData": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["selection", "loadId"],
+            "properties": {
+                "selection": {
+                    "const": "builtIn"
+                },
+                "loadId": {
+                    "type": "string",
+                    "minLength": 9,
+                    "maxLength": 128,
+                    "pattern": "^builtin:"
+                }
+            }
+        },
+        "customAmmunitionData": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["selection", "load"],
+            "properties": {
+                "selection": {
+                    "const": "custom"
+                },
+                "load": {
+                    "$ref": "#/$defs/customLoad"
+                }
+            }
+        },
+        "combinedScenarioData": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "inputs",
+                "uncertainty",
+                "customLoads",
+                "selectedLoadId",
+                "preferredUnits"
+            ],
+            "properties": {
+                "inputs": {
+                    "$ref": "#/$defs/inputs"
+                },
+                "uncertainty": {
+                    "$ref": "#/$defs/uncertainty"
+                },
+                "customLoads": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "items": {
+                        "$ref": "#/$defs/customLoad"
+                    }
+                },
+                "selectedLoadId": {
+                    "oneOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 128
+                        }
+                    ]
+                },
+                "preferredUnits": {
+                    "enum": ["metric", "imperial"]
+                }
+            }
+        },
+        "environmentProfile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "kind", "createdAt", "updatedAt", "data"],
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/profileId"
+                },
+                "name": {
+                    "$ref": "#/$defs/profileName"
+                },
+                "kind": {
+                    "const": "environment"
+                },
+                "createdAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "updatedAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "data": {
+                    "$ref": "#/$defs/environmentData"
+                }
+            }
+        },
+        "firearmProfile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "kind", "createdAt", "updatedAt", "data"],
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/profileId"
+                },
+                "name": {
+                    "$ref": "#/$defs/profileName"
+                },
+                "kind": {
+                    "const": "firearm"
+                },
+                "createdAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "updatedAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "data": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/shotgunFirearmData"
+                        },
+                        {
+                            "$ref": "#/$defs/rifleFirearmData"
+                        }
+                    ]
+                }
+            }
+        },
+        "ammunitionProfile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "kind", "createdAt", "updatedAt", "data"],
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/profileId"
+                },
+                "name": {
+                    "$ref": "#/$defs/profileName"
+                },
+                "kind": {
+                    "const": "ammunition"
+                },
+                "createdAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "updatedAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "data": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/builtInAmmunitionData"
+                        },
+                        {
+                            "$ref": "#/$defs/customAmmunitionData"
+                        }
+                    ]
+                }
+            }
+        },
+        "combinedScenarioProfile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "kind", "createdAt", "updatedAt", "data"],
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/profileId"
+                },
+                "name": {
+                    "$ref": "#/$defs/profileName"
+                },
+                "kind": {
+                    "const": "combinedScenario"
+                },
+                "createdAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "updatedAt": {
+                    "$ref": "#/$defs/timestamp"
+                },
+                "data": {
+                    "$ref": "#/$defs/combinedScenarioData"
+                }
+            }
+        },
+        "profile": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/environmentProfile"
+                },
+                {
+                    "$ref": "#/$defs/firearmProfile"
+                },
+                {
+                    "$ref": "#/$defs/ammunitionProfile"
+                },
+                {
+                    "$ref": "#/$defs/combinedScenarioProfile"
+                }
+            ]
+        }
+    }
+}

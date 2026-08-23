@@ -1,0 +1,156 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/fit-report.schema.json",
+    "title": "Ballistics Workbench built-in effective-BC fit report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "reportType",
+        "engineVersion",
+        "modelVersion",
+        "platform",
+        "generator",
+        "protocolOperation",
+        "evidenceLevel",
+        "passed",
+        "definitionIds",
+        "fits"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "reportType": { "const": "builtin_effective_bc_fits" },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "platform": { "enum": ["linux", "darwin", "win32"] },
+        "generator": { "const": "validation/reference/run-builtin-fits.mjs" },
+        "protocolOperation": { "const": "calibrateReferenceBc" },
+        "evidenceLevel": { "const": "calibration_only" },
+        "passed": { "type": "boolean" },
+        "definitionIds": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+        },
+        "fits": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": { "$ref": "#/$defs/fitResult" }
+        }
+    },
+    "$defs": {
+        "fitResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "loadId",
+                "model",
+                "sourceDatasetIds",
+                "parameterStatus",
+                "evidenceLevel",
+                "fitStatus",
+                "observationCount",
+                "calibrationCount",
+                "residualDegreesOfFreedom",
+                "implementedBallisticCoefficient",
+                "fittedBallisticCoefficient",
+                "coefficientResidualAbsolute",
+                "coefficientToleranceAbsolute",
+                "calibrationRmseMps",
+                "weightedRmse",
+                "reducedChiSquare",
+                "confidence95Low",
+                "confidence95High",
+                "hasHoldout",
+                "validationClaimAvailable",
+                "atmosphereQualification",
+                "uncertaintyQualification",
+                "assumptions",
+                "passed",
+                "residuals"
+            ],
+            "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "loadId": { "type": "string", "pattern": "^builtin:[a-z0-9-]+$" },
+                "model": { "enum": ["G1", "G7"] },
+                "sourceDatasetIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "minLength": 1 }
+                },
+                "parameterStatus": { "const": "fitted_to_same_table" },
+                "evidenceLevel": { "const": "calibration_only" },
+                "fitStatus": {
+                    "enum": [
+                        "converged",
+                        "maximum_iterations",
+                        "insufficient_information",
+                        "solver_failure"
+                    ]
+                },
+                "observationCount": { "type": "integer", "minimum": 1 },
+                "calibrationCount": { "type": "integer", "minimum": 1 },
+                "residualDegreesOfFreedom": { "type": "integer", "minimum": 0 },
+                "implementedBallisticCoefficient": {
+                    "type": "number",
+                    "minimum": 0.005,
+                    "maximum": 2
+                },
+                "fittedBallisticCoefficient": { "type": "number", "minimum": 0.005, "maximum": 2 },
+                "coefficientResidualAbsolute": { "type": "number", "minimum": 0 },
+                "coefficientToleranceAbsolute": { "type": "number", "exclusiveMinimum": 0 },
+                "calibrationRmseMps": { "type": "number", "minimum": 0 },
+                "weightedRmse": { "type": "number", "minimum": 0 },
+                "reducedChiSquare": { "type": "number", "minimum": 0 },
+                "confidence95Low": { "type": ["number", "null"], "minimum": 0.005, "maximum": 2 },
+                "confidence95High": { "type": ["number", "null"], "minimum": 0.005, "maximum": 2 },
+                "hasHoldout": { "const": false },
+                "validationClaimAvailable": { "const": false },
+                "atmosphereQualification": { "type": "string", "minLength": 1 },
+                "uncertaintyQualification": { "type": "string", "minLength": 1 },
+                "assumptions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": { "type": "string", "minLength": 1 }
+                },
+                "passed": { "type": "boolean" },
+                "residuals": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 32,
+                    "items": { "$ref": "#/$defs/residual" }
+                }
+            }
+        },
+        "residual": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "sourceId",
+                "distanceM",
+                "measuredVelocityMps",
+                "predictedVelocityMps",
+                "residualMps",
+                "normalizedResidual",
+                "standardDeviationMps",
+                "role"
+            ],
+            "properties": {
+                "sourceId": { "type": "string", "minLength": 1 },
+                "distanceM": { "type": "number", "exclusiveMinimum": 0 },
+                "measuredVelocityMps": { "type": "number", "minimum": 1 },
+                "predictedVelocityMps": { "type": "number", "minimum": 0 },
+                "residualMps": { "type": "number" },
+                "normalizedResidual": { "type": "number" },
+                "standardDeviationMps": { "type": "number", "minimum": 0.01 },
+                "role": { "enum": ["calibration", "holdout"] }
+            }
+        }
+    }
+}

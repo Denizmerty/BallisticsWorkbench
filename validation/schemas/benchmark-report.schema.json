@@ -1,0 +1,69 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/benchmark-report.schema.json",
+    "title": "Ballistics Workbench native benchmark report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "engineVersion",
+        "modelVersion",
+        "platform",
+        "compiler",
+        "hardwareConcurrency",
+        "clock",
+        "thresholdPolicy",
+        "benchmarks"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "compiler": { "type": "string", "minLength": 1 },
+        "hardwareConcurrency": { "type": "integer", "minimum": 1 },
+        "clock": { "type": "string", "minLength": 1 },
+        "thresholdPolicy": { "type": "string", "minLength": 1 },
+        "benchmarks": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/benchmark" }
+        }
+    },
+    "$defs": {
+        "benchmark": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "iterations",
+                "medianMs",
+                "p95Ms",
+                "minimumMs",
+                "maximumMs",
+                "guard",
+                "integrationDiagnosticsAvailable",
+                "acceptedStepsPerIteration",
+                "rejectedStepsPerIteration",
+                "retainedSamplesPerIteration",
+                "estimatedRetainedBytesPerIteration",
+                "serializedSamplesPerIteration"
+            ],
+            "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "iterations": { "type": "integer", "minimum": 1 },
+                "medianMs": { "type": "number", "minimum": 0 },
+                "p95Ms": { "type": "number", "minimum": 0 },
+                "minimumMs": { "type": "number", "minimum": 0 },
+                "maximumMs": { "type": "number", "minimum": 0 },
+                "guard": { "type": "number" },
+                "integrationDiagnosticsAvailable": { "type": "boolean" },
+                "acceptedStepsPerIteration": { "type": "integer", "minimum": 0 },
+                "rejectedStepsPerIteration": { "type": "integer", "minimum": 0 },
+                "retainedSamplesPerIteration": { "type": "integer", "minimum": 0 },
+                "estimatedRetainedBytesPerIteration": { "type": "integer", "minimum": 0 },
+                "serializedSamplesPerIteration": { "type": "integer", "minimum": 0 }
+            }
+        }
+    }
+}

@@ -1,0 +1,581 @@
+{
+    "schemaVersion": 1,
+    "modelVersion": "2026.08.11",
+    "artifactSchemas": {
+        "source": "schemas/source.schema.json",
+        "scenario": "schemas/scenario.schema.json",
+        "fit": "schemas/fit.schema.json",
+        "fitReport": "schemas/fit-report.schema.json",
+        "report": "schemas/report.schema.json",
+        "manufacturerReport": "schemas/manufacturer-report.schema.json",
+        "atmosphereReport": "schemas/atmosphere-report.schema.json",
+        "convergenceReport": "schemas/convergence-report.schema.json",
+        "flightMatrix": "schemas/flight-matrix.schema.json",
+        "flightMatrixReport": "schemas/flight-matrix-report.schema.json",
+        "benchmarkReport": "schemas/benchmark-report.schema.json",
+        "interactionPerformanceReport": "schemas/interaction-performance-report.schema.json"
+    },
+    "evidenceLevels": [
+        {
+            "id": "inventory_only",
+            "rank": 0,
+            "definition": "Implementation values and their known provenance are recorded. Predictive accuracy has not been checked against a suitable external dataset."
+        },
+        {
+            "id": "calibration_only",
+            "rank": 1,
+            "definition": "One or more parameters were fitted to the reported observations. No physically separate holdout observations establish predictive error."
+        },
+        {
+            "id": "manufacturer_conformance",
+            "rank": 2,
+            "definition": "Output is compared with a manufacturer or publication table under the documented assumptions. This does not establish independent empirical accuracy."
+        },
+        {
+            "id": "independent_model_conformance",
+            "rank": 3,
+            "definition": "Output is compared with a separately implemented solver or reference model under stated assumptions and tolerances."
+        },
+        {
+            "id": "empirical_holdout",
+            "rank": 4,
+            "definition": "Predictions are compared with measured observations that were excluded from parameter fitting."
+        }
+    ],
+    "reportArtifacts": [
+        {
+            "id": "g7-independent-residuals",
+            "path": "g7-independent-residuals.json",
+            "schema": "report",
+            "title": "Independent G7 RK4 comparison",
+            "classification": "independent_model_conformance",
+            "claimBoundary": "Checks production G7 trajectories against a fixed-step implementation across supersonic, transonic, and subsonic cases. It does not test projectile-specific BC accuracy."
+        },
+        {
+            "id": "independent-flight-matrix",
+            "path": "flight-matrix-residuals.json",
+            "schema": "flightMatrixReport",
+            "title": "Independent trajectory matrix",
+            "classification": "independent_model_conformance",
+            "claimBoundary": "Checks the declared trajectory equations and event calculations across the registered matrix. Shared physical model assumptions are outside this comparison."
+        },
+        {
+            "id": "manufacturer-table-conformance",
+            "path": "manufacturer-conformance-residuals.json",
+            "schema": "manufacturerReport",
+            "title": "Manufacturer and publication velocity tables",
+            "classification": "manufacturer_conformance",
+            "claimBoundary": "Checks reproduced table values under an assumed atmosphere. Loads fitted to the same table remain calibration evidence."
+        },
+        {
+            "id": "atmosphere-property-conformance",
+            "path": "atmosphere-conformance-residuals.json",
+            "schema": "atmosphereReport",
+            "title": "Atmosphere property references",
+            "classification": "independent_model_conformance",
+            "claimBoundary": "Checks density, sound speed, and viscosity only inside each report section's declared domain."
+        },
+        {
+            "id": "adaptive-solver-convergence",
+            "path": "adaptive-convergence.json",
+            "schema": "convergenceReport",
+            "title": "Adaptive solver convergence",
+            "classification": "independent_model_conformance",
+            "claimBoundary": "Checks numerical convergence and an analytical constant-Cd case. It does not validate the physical drag models."
+        },
+        {
+            "id": "builtin-effective-bc-fits",
+            "path": "builtin-effective-bc-fits.json",
+            "schema": "fitReport",
+            "title": "Built-in effective-BC fits",
+            "classification": "calibration_only",
+            "claimBoundary": "Reproduces implemented fitted coefficients from their calibration inputs. No fit has an empirical holdout."
+        },
+        {
+            "id": "native-benchmarks",
+            "path": "benchmark.json",
+            "schema": "benchmarkReport",
+            "title": "Native calculation benchmarks",
+            "classification": "performance_measurement",
+            "claimBoundary": "Records timings on the named platform and compiler. Timings are report-only and do not define a cross-machine pass threshold."
+        },
+        {
+            "id": "interaction-performance",
+            "path": "interaction-performance.json",
+            "schema": "interactionPerformanceReport",
+            "title": "Full interaction performance budget",
+            "classification": "performance_measurement",
+            "claimBoundary": "Checks the declared warm and cold p95 budgets on the current host. Results do not predict every supported machine."
+        }
+    ],
+    "inventories": ["normalized/builtin-loads.json"],
+    "models": [
+        {
+            "id": "smooth-sphere-morrison-collins",
+            "implementation": "src/Ballistics.Core/src/ballistics.cpp",
+            "description": "Morrison Reynolds-dependent smooth-sphere drag with the Collins compressibility correction",
+            "declaredValidity": {
+                "mach": [0.2, 1.5],
+                "reynolds": [100, 2000000],
+                "behaviorOutsideDomain": "calculation continues with a structured extrapolation warning"
+            },
+            "sources": [
+                "https://arc.id.au/CannonballDrag.html",
+                "https://doi.org/10.1017/S0022112079002597"
+            ]
+        },
+        {
+            "id": "user-tabulated-mach-cd",
+            "implementation": "src/Ballistics.Core/src/ballistics.cpp",
+            "description": "User-supplied projectile drag coefficients with linear interpolation and a physical force equation based on an explicit frontal reference diameter",
+            "declaredValidity": {
+                "mach": "bounded by the first and last user-supplied knots",
+                "reynolds": null,
+                "behaviorOutsideDomain": "the nearest endpoint Cd is held constant and a structured extrapolation warning is returned"
+            },
+            "interpolation": "Piecewise linear, exact at knots, with no spline overshoot",
+            "forceLaw": "a_drag = rho * Cd * A * v_air^2 / (2 * mass), A = pi * referenceDiameter^2 / 4",
+            "sources": [
+                "User-supplied numerical curve. The user is responsible for its provenance."
+            ]
+        },
+        {
+            "id": "reference-bc-velocity-calibration",
+            "implementation": "src/Ballistics.Core/src/ballistics.cpp",
+            "description": "Deterministic weighted nonlinear least-squares estimation of constant or fixed-threshold velocity-banded G1/G7 ballistic coefficients from range/velocity observations",
+            "parameterization": "log ballistic coefficient, bounded to [0.005, 2.0]",
+            "objective": "sum of squared (predicted - measured) velocity divided by supplied one-sigma uncertainty, using calibration-role observations only",
+            "optimizer": "Levenberg-Marquardt with central numerical derivatives",
+            "intervals": "Approximate local 95% intervals from inverse weighted J^T J on the log-BC scale. Variance scale is max(1, reduced chi-square).",
+            "validationBoundary": "holdout observations are excluded from fitting and reported separately. A fit without holdout data cannot return a validation-ready state.",
+            "testEvidence": [
+                "synthetic constant-G1 coefficient recovery and confidence coverage",
+                "synthetic two-band G7 coefficient recovery",
+                "real CLI protocol fixture with separate calibration and holdout residuals"
+            ]
+        },
+        {
+            "id": "first-order-trajectory-uncertainty",
+            "implementation": "src/Ballistics.Core/src/ballistics.cpp",
+            "description": "Deterministic local propagation of independent one-sigma scenario inputs into aligned trajectory-output standard deviations",
+            "method": "bounded central finite-difference sensitivities with independent root-sum-square variance combination",
+            "confidenceDisplay": "approximate two-sided 95% half-width equals 1.9599639845 times propagated standard deviation",
+            "zeroingSemantics": "Muzzle velocity, drag, atmosphere, and wind hold nominal bore elevation fixed. Zero-range perturbations re-solve bore elevation.",
+            "outputs": [
+                "ground speed",
+                "energy",
+                "momentum",
+                "flight time",
+                "drop",
+                "sight path",
+                "wind drift"
+            ],
+            "limitations": [
+                "inputs are assumed independent",
+                "first-order local approximation only",
+                "model-form and spin-drift uncertainty are excluded",
+                "correlated or materially nonlinear cases should use the separate Monte Carlo method"
+            ],
+            "testEvidence": [
+                "muzzle-only analytic launch-point speed, energy, and momentum sensitivities",
+                "all-input root-sum-square propagation and availability",
+                "real CLI protocol fixture with aligned complete uncertainty samples"
+            ]
+        },
+        {
+            "id": "trajectory-event-analysis",
+            "implementation": "src/Ballistics.Core/src/ballistics.cpp",
+            "description": "Range-domain analysis of a natively zeroed trajectory for sight-line zeros, maximum ordinate, Mach-regime crossings, supersonic range, and ground intersection",
+            "interpolation": "Cubic Hermite interpolation in range uses integrated vertical position and vy/vx slope. Mach crossings use linear interpolation between retained dense states.",
+            "thresholds": {
+                "transonicEntryMach": 1.2,
+                "sonicMach": 1,
+                "transonicExitMach": 0.8
+            },
+            "availability": "Each event family reports complete, horizon_limited, baseline_unavailable, or not_applicable as appropriate. An endpoint is never substituted for a missing crossing.",
+            "testEvidence": [
+                "configured far-zero recovery and ordered near/far crossings",
+                "maximum ordinate between the sight-line zeros",
+                "Mach-1 crossing consistency with supersonic range",
+                "ground intersection and explicit short-horizon availability"
+            ]
+        }
+    ],
+    "datasets": [
+        {
+            "id": "reference-drag-g1-gnu-ballistics",
+            "path": "sources/g1-gnu-ballistics.csv",
+            "kind": "reference_drag_function",
+            "model": "G1",
+            "source": {
+                "title": "GNU Ballistics Library G1 drag-function coefficients",
+                "author": "Derek Yates",
+                "edition": "0.201 alpha",
+                "onlineTranscription": "https://sourceforge.net/projects/ballisticslib/files/GNU%20Ballistics%20Library/0.201%20alpha/"
+            },
+            "crossChecks": [
+                "https://raw.githubusercontent.com/o-murphy/py-ballisticcalc/v2.2.10/py_ballisticcalc/drag_tables.py"
+            ],
+            "retrieved": "2026-08-15",
+            "units": {
+                "minimumVelocity": "feet per second",
+                "coefficient": "GNU Ballistics retardation-law coefficient",
+                "exponent": "dimensionless"
+            },
+            "normalization": "For the active descending velocity band, retardation in ft/s^2 is coefficient * velocity_fps^exponent / G1_BC.",
+            "license": "Numerical coefficient facts are transcribed for implementation conformance. The external program source is not redistributed.",
+            "sha256": "f1e87cf0acac35b1478685875fbfb2c3743aa45f236d309541222625e3e29a2f"
+        },
+        {
+            "id": "reference-drag-g7-mccoy",
+            "path": "sources/g7-mccoy.csv",
+            "kind": "reference_drag_curve",
+            "model": "G7",
+            "source": {
+                "title": "Modern Exterior Ballistics: The Launch and Flight Dynamics of Symmetric Projectiles",
+                "author": "Robert L. McCoy",
+                "edition": "Second edition",
+                "year": 1999,
+                "onlineTranscription": "https://jbmballistics.com/ballistics/downloads/text/mcg7.txt"
+            },
+            "crossChecks": [
+                "https://appliedballisticsllc.com/wp-content/uploads/2021/06/ABDOC130_CDM-2021-Copyright.pdf"
+            ],
+            "retrieved": "2026-08-11",
+            "units": {
+                "mach": "dimensionless",
+                "cd": "dimensionless"
+            },
+            "normalization": "G7 standard projectile reference drag coefficient",
+            "license": "Numerical facts are transcribed for implementation conformance. Source publications are not redistributed.",
+            "sha256": "a275757af325add428ca961505e04898c7f909c369a50089ccaf213947a351e4"
+        },
+        {
+            "id": "independent-reference-drag-g7-py-ballisticcalc-2.2.10",
+            "path": "sources/g7-py-ballisticcalc-2.2.10.csv",
+            "kind": "reference_drag_curve",
+            "model": "G7",
+            "source": {
+                "title": "py-ballisticcalc TableG7",
+                "author": "py-ballisticcalc contributors",
+                "edition": "v2.2.10",
+                "onlineTranscription": "https://raw.githubusercontent.com/o-murphy/py-ballisticcalc/v2.2.10/py_ballisticcalc/drag_tables.py"
+            },
+            "crossChecks": ["https://github.com/o-murphy/py-ballisticcalc/releases/tag/v2.2.10"],
+            "retrieved": "2026-08-15",
+            "units": {
+                "mach": "dimensionless",
+                "cd": "dimensionless"
+            },
+            "normalization": "G7 standard projectile reference drag coefficient, transcribed independently from the production McCoy CSV for solver cross-checking.",
+            "license": "Only numerical facts are stored. py-ballisticcalc is LGPL-3.0. No library code is copied into the application.",
+            "sha256": "5f19bcaeecd96e36172c404ebad7a0ff8d030e09f2457bc463e6d0ea49eb070e"
+        },
+        {
+            "id": "manufacturer-hornady-80971-2022",
+            "path": "sources/hornady-80971-2022.csv",
+            "kind": "manufacturer_table",
+            "source": {
+                "title": "2022 Standard Ballistics Chart, BLACK 308 Win 168 gr A-MAX item 80971",
+                "publisher": "Hornady Manufacturing",
+                "editionOrVersion": "2022",
+                "publicationDate": "2022",
+                "locator": "https://static.hornady.media/presscenter/docs/1410998060-2022-Standard-Ballistics-Chart.pdf",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "distance_yd": "yards",
+                "velocity_fps": "feet per second",
+                "energy_ft_lb": "foot-pounds",
+                "trajectory_in": "inches"
+            },
+            "normalization": "The row for item 80971 is transcribed at the published muzzle and 100-yard intervals. The chart states that rifle data use a 24-inch barrel unless otherwise noted.",
+            "uncertainty": "The table is rounded to whole feet per second and whole foot-pounds and to 0.1 inch. Lot, sample size, measurement method, atmosphere, and uncertainty are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only the item 80971 numerical row is transcribed. The Hornady PDF is linked and is not redistributed."
+            },
+            "sha256": "f45d8c3638b2c9876e6b082edf260f8f05da4f39b154cbf33d33198211a39578"
+        },
+        {
+            "id": "manufacturer-federal-308a-2022",
+            "path": "sources/federal-308a-2022.csv",
+            "kind": "manufacturer_table",
+            "source": {
+                "title": "Federal Catalog 2022, Power-Shok 308A rifle ballistics",
+                "publisher": "Federal Premium Ammunition",
+                "editionOrVersion": "2022",
+                "publicationDate": "2022",
+                "locator": "https://www.federalpremium.com/on/demandware.static/-/Library-Sites-VistaFederalSharedLibrary/default/vd5051f299f79146229507233809e6144584db865/contentDocuments/catalog/Federal-Catalog-2022_website_sm.pdf",
+                "archivedLocator": null
+            },
+            "crossChecks": [
+                "https://www.federalpremium.com/on/demandware.static/-/Library-Sites-VistaFederalSharedLibrary/default/v626efddaad5102738688e30452860de662767353/contentDocuments/catalog/FederalPremium2019Catalog-Full.pdf"
+            ],
+            "retrieved": "2026-08-17",
+            "units": {
+                "distance_yd": "yards",
+                "velocity_fps": "feet per second"
+            },
+            "normalization": "The Power-Shok 308A velocity series is transcribed at the published muzzle and 100-yard intervals. The 2019 Federal catalog cross-check identifies a 24-inch test barrel for the same product and series.",
+            "uncertainty": "Velocity is rounded to whole feet per second. Lot, sample size, measurement method, atmosphere, and uncertainty are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only the 308A velocity series is transcribed. Federal catalog PDFs are linked and are not redistributed."
+            },
+            "sha256": "e67a83c7b1b2cb159e4b66c7eb29804e2bcfd492930c9211008e7892f9b565d9"
+        },
+        {
+            "id": "manufacturer-winchester-x123rs15-2026",
+            "path": "sources/winchester-x123rs15-2026.csv",
+            "kind": "manufacturer_table",
+            "source": {
+                "title": "Winchester 2026 Online Catalog, shotshell ballistics, X123RS15",
+                "publisher": "Olin Winchester",
+                "editionOrVersion": "2026 online catalog, page 40",
+                "publicationDate": "2026",
+                "locator": "https://online.flippingbook.com/view/721179895/42/",
+                "archivedLocator": null
+            },
+            "crossChecks": ["https://online.flippingbook.com/view/816092/48/"],
+            "retrieved": "2026-08-17",
+            "units": {
+                "distance_yd": "yards",
+                "velocity_fps": "feet per second",
+                "energy_ft_lb": "foot-pounds"
+            },
+            "normalization": "The X123RS15 row is transcribed at muzzle, 50, 100, and 125 yards. Its published G1 ballistic coefficient is 0.068. The nominal slug is 1 ounce (438 grains) in a 3-inch 12-gauge shell.",
+            "uncertainty": "Velocity and energy are rounded to whole units. Test barrel, lot, sample size, measurement method, atmosphere, and uncertainty are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only one catalog row is transcribed. The Winchester catalog is linked and is not redistributed."
+            },
+            "sha256": "36edad5493f0dd1a39f56b85649bce851f2773dce89f06b4a61377bb59433ae9"
+        },
+        {
+            "id": "manufacturer-winchester-xb1200-2019",
+            "path": "sources/winchester-xb1200-2019.csv",
+            "kind": "metadata_only",
+            "source": {
+                "title": "Winchester Law Enforcement 2019 Catalog, Super-X Buckshot XB1200",
+                "publisher": "Olin Winchester",
+                "editionOrVersion": "2019",
+                "publicationDate": "2019",
+                "locator": "https://online.flippingbook.com/view/977082/13/",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "shell_length_in": "inches",
+                "velocity_fps_at_3_ft": "feet per second measured nominally at 3 feet"
+            },
+            "normalization": "The XB1200 product row is transcribed without deriving a per-pellet mass or drag coefficient.",
+            "uncertainty": "The catalog gives a nominal 3-foot velocity. Barrel, lot, sample size, atmosphere, velocity uncertainty, pellet alloy, and dimensional tolerance are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only the XB1200 product facts are transcribed. The Winchester catalog is linked and is not redistributed."
+            },
+            "sha256": "818643681651cd56a5560135518570bdb694faa46c8df43b531c770bfa09b8e6"
+        },
+        {
+            "id": "manufacturer-winchester-buckshot-diameters-2022",
+            "path": "sources/winchester-buckshot-diameters-2022.csv",
+            "kind": "metadata_only",
+            "source": {
+                "title": "Winchester Ammunition Academy: Shotshell Ammo 101",
+                "publisher": "Olin Winchester",
+                "editionOrVersion": "2022",
+                "publicationDate": "2022",
+                "locator": "https://winchester.com/-/media/Project/Consumer/PDFs/Winchester-Ammunition-Academy-Shotshell-Ammo-101.ashx",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "nominal_diameter_in": "inches"
+            },
+            "normalization": "The complete published nominal buckshot-size diameter table is transcribed. The built-in XB1200 uses the 00 row, 0.33 inch.",
+            "uncertainty": "The guide states nominal diameters but no manufacturing tolerance or pellet-alloy-specific diameter distribution.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only the six nominal size/diameter pairs are transcribed. The Winchester guide is linked and is not redistributed."
+            },
+            "sha256": "2f861434a599ceeca91e3e434414db47da3a8d5a119ffbaae6935656cfc5b6db"
+        },
+        {
+            "id": "manufacturer-attributed-bp-white-blackout-hv-2018",
+            "path": "sources/bp-white-blackout-hv-hunting-spot-2018.csv",
+            "kind": "manufacturer_attributed_table",
+            "sourceQualification": "A Hunting Spot report by B&P ballistic consultant Gianluca Garolini states that the study was conducted at the B&P test bench. No manufacturer-controlled copy was located.",
+            "source": {
+                "title": "Test delle cartucce a palla Baschieri & Pellagri, White Blackout HV table",
+                "author": "Gianluca Garolini",
+                "publisher": "Hunting Spot",
+                "editionOrVersion": "PDF created 2018-01-16. Accompanying article published 2018-02-14.",
+                "publicationDate": "2018-02-14",
+                "locator": "https://cdn2.hubspot.net/hubfs/2739290/%5BOfferte%5D/Test-cartucce-a-palla-B%26P.pdf?_hsmi=59678583&t=1519918374079",
+                "archivedLocator": null
+            },
+            "crossChecks": [
+                "https://blog.hunting-spot.com/prova-e-recensione-delle-cartucce-per-cinghiale-baschieri-pellagri"
+            ],
+            "retrieved": "2026-08-17",
+            "units": {
+                "distance_m": "metres from the muzzle",
+                "velocity_mps": "metres per second"
+            },
+            "normalization": "The White Blackout HV V1 and 33-metre velocity cells are transcribed exactly. The report describes the velocity/trajectory table as calculated. These values are not raw chronograph observations.",
+            "uncertainty": "Velocity is rounded to whole metres per second. Lot, pressure-barrel dimensions, atmosphere, calculation method, and numerical or measurement uncertainty are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only two numerical cells are transcribed. The Hunting Spot PDF is linked and is not redistributed."
+            },
+            "sha256": "eff95b626b6a4ff9ae928e3c70abce5d353e54cb4b326303a524dedd214cb864"
+        },
+        {
+            "id": "manufacturer-attributed-bp-blackshock-2018",
+            "path": "sources/bp-blackshock-hunting-spot-2018.csv",
+            "kind": "manufacturer_attributed_table",
+            "sourceQualification": "A Hunting Spot report by B&P ballistic consultant Gianluca Garolini states that the study was conducted at the B&P test bench. No manufacturer-controlled copy was located.",
+            "source": {
+                "title": "Test delle cartucce a palla Baschieri & Pellagri, BlackShock table",
+                "author": "Gianluca Garolini",
+                "publisher": "Hunting Spot",
+                "editionOrVersion": "PDF created 2018-01-16. Accompanying article published 2018-02-14.",
+                "publicationDate": "2018-02-14",
+                "locator": "https://cdn2.hubspot.net/hubfs/2739290/%5BOfferte%5D/Test-cartucce-a-palla-B%26P.pdf?_hsmi=59678583&t=1519918374079",
+                "archivedLocator": null
+            },
+            "crossChecks": [
+                "https://blog.hunting-spot.com/prova-e-recensione-delle-cartucce-per-cinghiale-baschieri-pellagri"
+            ],
+            "retrieved": "2026-08-17",
+            "units": {
+                "distance_m": "metres from the muzzle",
+                "velocity_mps": "metres per second"
+            },
+            "normalization": "The BlackShock V1 and 33-metre velocity cells are transcribed exactly. The report describes the velocity/trajectory table as calculated. These values are not raw chronograph observations.",
+            "uncertainty": "Velocity is rounded to whole metres per second. Lot, pressure-barrel dimensions, atmosphere, calculation method, and numerical or measurement uncertainty are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only two numerical cells are transcribed. The Hunting Spot PDF is linked and is not redistributed."
+            },
+            "sha256": "9efc50b80ef01c4de8bd6d616c6abbd01de2ba05ee01c0771486032c00cc73b0"
+        },
+        {
+            "id": "secondary-bp-white-blackout-hv-caccia-magazine-2019",
+            "path": "sources/bp-white-blackout-hv-caccia-magazine-2019.csv",
+            "kind": "secondary_publication",
+            "sourceQualification": "Caccia Magazine attributes the 50-metre velocity to Baschieri & Pellagri. No underlying manufacturer table or measurement record was located.",
+            "source": {
+                "title": "Baschieri & Pellagri White Blackout HV calibro 12",
+                "author": "Simone Bertini",
+                "publisher": "Caccia Magazine",
+                "editionOrVersion": null,
+                "publicationDate": "2019-04-11",
+                "locator": "https://www.cacciamagazine.it/baschieri-pellagri-white-blackout-hv-calibro-12/",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "distance_m": "metres from the muzzle",
+                "velocity_mps": "metres per second"
+            },
+            "normalization": "The single 50-metre velocity attributed to B&P is transcribed exactly. No interpolation or unit conversion is applied.",
+            "uncertainty": "Velocity is rounded to whole metres per second. Lot, barrel used for the attributed value, atmosphere, measured-versus-generated status, and uncertainty are not stated.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only the attributed 50-metre velocity is transcribed. The article is linked and is not redistributed."
+            },
+            "sha256": "4b401f58ec56e8f99c1ee672d848dd1b24e642deb50ac11dee427c7c0a980403"
+        },
+        {
+            "id": "reference-atmosphere-cipm-2007",
+            "path": "sources/atmosphere-cipm-2007.csv",
+            "kind": "atmosphere_reference",
+            "source": {
+                "title": "Revised formula for the density of moist air (CIPM-2007)",
+                "author": "A. Picard, R. S. Davis, M. Glaser, and K. Fujii",
+                "publisher": "Metrologia, copy hosted by the National Institute of Standards and Technology",
+                "editionOrVersion": "CIPM-2007",
+                "publicationDate": "2008",
+                "locator": "https://www.nist.gov/system/files/documents/calibrations/CIPM-2007.pdf",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "temperature_c": "degrees Celsius",
+                "station_pressure_hpa": "hectopascals",
+                "relative_humidity_percent": "percent",
+                "co2_mole_fraction": "dimensionless",
+                "density_kg_m3": "kilograms per cubic metre",
+                "compressibility_factor": "dimensionless",
+                "water_vapor_mole_fraction": "dimensionless"
+            },
+            "normalization": "Values are generated directly from the CIPM-2007 equations and constants at a carbon-dioxide mole fraction of 0.0004. Decimal output is deterministically rounded to 12 places. Cases remain inside 15 to 27 degrees Celsius and 600 to 1100 hPa.",
+            "uncertainty": "The source estimates a relative standard uncertainty of 22 parts in 10^6 over the stated pressure and temperature ranges, excluding uncertainty in measured environmental inputs. This comparison evaluates formula agreement, not sensor uncertainty.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only independently generated equation outputs and source metadata are stored. The NIST-hosted paper is linked and is not redistributed."
+            },
+            "sha256": "b67797ee0081b669efb201901d5e230d2fe982a7ba44347eab93565b58cce1c4"
+        },
+        {
+            "id": "reference-air-viscosity-naca-1135",
+            "path": "sources/air-viscosity-naca-1135.csv",
+            "kind": "atmosphere_reference",
+            "source": {
+                "title": "Equations, Tables, and Charts for Compressible Flow",
+                "author": "Ames Research Staff",
+                "publisher": "National Advisory Committee for Aeronautics, NASA Technical Reports Server",
+                "editionOrVersion": "NACA Report 1135",
+                "publicationDate": "1953-01-01",
+                "locator": "https://ntrs.nasa.gov/citations/19930091059",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "temperature_c": "degrees Celsius",
+                "dynamic_viscosity_pa_s": "pascal seconds"
+            },
+            "normalization": "Values are generated from equation A3 using absolute temperature in degrees Rankine, then converted from pound-force seconds per square foot to pascal seconds. The selected cases cover the application's complete -60 to 60 degree Celsius input range and remain inside the report's stated 180 to 3400 degree Rankine range for Sutherland's formula.",
+            "uncertainty": "The source describes Sutherland's equation as the more accurate approximation across its stated range but does not publish a numerical uncertainty for equation A3. This is formula conformance, not an empirical viscosity uncertainty claim.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only independently generated equation outputs and source metadata are stored. NASA identifies the report as US Government work with public use permitted. The PDF is linked and is not redistributed."
+            },
+            "sha256": "0e116d2cb0b13627bf7f54711f79ce42376949d3013c99d290367ff60b512f23"
+        },
+        {
+            "id": "reference-atmosphere-sound-speed-gavioso-2025",
+            "path": "sources/atmosphere-sound-speed-gavioso-2025.csv",
+            "kind": "atmosphere_reference",
+            "source": {
+                "title": "Speed of sound in humid air: Accurate thermodynamic model and experimental validation",
+                "author": "R. M. Gavioso, M. Astrua, M. Zucco, and M. Pisani",
+                "publisher": "Journal of Physical and Chemical Reference Data",
+                "editionOrVersion": "Volume 54, 043101. DOI 10.1063/5.0294663.",
+                "publicationDate": "2025-12-02",
+                "locator": "https://doi.org/10.1063/5.0294663",
+                "archivedLocator": null
+            },
+            "retrieved": "2026-08-17",
+            "units": {
+                "temperature_c": "degrees Celsius",
+                "station_pressure_hpa": "hectopascals",
+                "relative_humidity_percent": "percent",
+                "co2_mole_fraction": "dimensionless",
+                "acoustic_frequency_hz": "hertz",
+                "speed_of_sound_mps": "metres per second",
+                "standard_uncertainty_mps": "metres per second"
+            },
+            "normalization": "Four rows at 0, 20, 30, and 50 degrees Celsius from Table 5 are transcribed exactly. One atmosphere is converted from 1 atm to 1013.25 hPa. No sound-speed or uncertainty value is converted. The 50 degree Celsius row retains its published 10 kHz frequency so the report does not mislabel it as a zero-frequency datum. The 2 atm row is excluded because it lies outside the application pressure input domain.",
+            "uncertainty": "The table's per-row standard uncertainties are preserved. The cases all use a carbon-dioxide mole fraction of 0.000368. Three cases are inside the declared Cramer sound-speed domain and the 50 degree Celsius case explicitly exercises extrapolation. They do not validate the application's complete pressure, composition, or frequency domain.",
+            "redistribution": {
+                "status": "numerical_facts_only",
+                "note": "Only four numerical table rows from the open-access paper are transcribed. The paper and its software are linked and are not redistributed."
+            },
+            "sha256": "7a34bfe2ad0b7d4ecae5717534c7a88ca656f25b4f0e9308c65300cd6d03d3b9"
+        }
+    ]
+}

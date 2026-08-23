@@ -1,0 +1,24 @@
+#pragma once
+
+#include <cstddef>
+#include <string_view>
+
+namespace ballistics::identity
+{
+
+inline constexpr std::string_view application_version = "@BALLISTICS_APPLICATION_VERSION@";
+inline constexpr std::string_view engine_version = application_version;
+inline constexpr std::string_view model_version = "@BALLISTICS_MODEL_VERSION@";
+inline constexpr int protocol_version = @BALLISTICS_PROTOCOL_VERSION@;
+inline constexpr int profile_interchange_version = @BALLISTICS_PROFILE_INTERCHANGE_VERSION@;
+inline constexpr int drag_data_interchange_version = @BALLISTICS_DRAG_DATA_INTERCHANGE_VERSION@;
+inline constexpr int settings_schema_version = @BALLISTICS_SETTINGS_SCHEMA_VERSION@;
+inline constexpr std::size_t maximum_calculation_request_bytes =
+    @BALLISTICS_CALCULATION_REQUEST_BYTES@;
+inline constexpr std::size_t maximum_engine_response_bytes = @BALLISTICS_ENGINE_RESPONSE_BYTES@;
+inline constexpr std::size_t maximum_profile_document_bytes = @BALLISTICS_PROFILE_DOCUMENT_BYTES@;
+inline constexpr std::size_t maximum_drag_data_document_bytes =
+    @BALLISTICS_DRAG_DATA_DOCUMENT_BYTES@;
+inline constexpr std::size_t maximum_csv_export_bytes = @BALLISTICS_CSV_EXPORT_BYTES@;
+
+} // namespace ballistics::identity

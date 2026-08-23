@@ -1,0 +1,36 @@
+{
+    "protocolVersion": 1,
+    "requestId": "fuzz-drag-variants",
+    "scenario": null,
+    "customLoads": [
+        {
+            "drag": {
+                "kind": "referenceBc",
+                "curve": "G7",
+                "velocityBands": [
+                    {
+                        "minimumVelocityMps": 0,
+                        "ballisticCoefficient": 0.2
+                    }
+                ]
+            }
+        },
+        {
+            "drag": {
+                "kind": "machCd",
+                "referenceDiameterM": 0.01,
+                "points": [
+                    {
+                        "mach": 0,
+                        "dragCoefficient": 0.3
+                    }
+                ]
+            }
+        },
+        {
+            "drag": {
+                "kind": "sphere"
+            }
+        }
+    ]
+}

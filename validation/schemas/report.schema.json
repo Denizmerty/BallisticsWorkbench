@@ -1,0 +1,52 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/validation-report.schema.json",
+    "title": "Ballistics Workbench machine-readable validation report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "scenarioSetId",
+        "engineVersion",
+        "modelVersion",
+        "passed",
+        "maximumResiduals",
+        "scenarios"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "scenarioSetId": { "type": "string", "minLength": 1 },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "compiler": { "type": "string" },
+        "passed": { "type": "boolean" },
+        "maximumResiduals": { "$ref": "#/$defs/residuals" },
+        "scenarios": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "regime", "passed", "maximumResiduals"],
+                "properties": {
+                    "id": { "type": "string", "minLength": 1 },
+                    "regime": { "enum": ["supersonic", "transonic", "subsonic"] },
+                    "passed": { "type": "boolean" },
+                    "maximumResiduals": { "$ref": "#/$defs/residuals" }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "residuals": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["velocityRelative", "timeRelative", "positionAbsoluteM"],
+            "properties": {
+                "velocityRelative": { "type": "number", "minimum": 0 },
+                "timeRelative": { "type": "number", "minimum": 0 },
+                "positionAbsoluteM": { "type": "number", "minimum": 0 }
+            }
+        }
+    }
+}

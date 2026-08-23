@@ -7,15 +7,29 @@
 *.hpp text eol=lf
 *.js text eol=lf
 *.cjs text eol=lf
+*.mjs text eol=lf
 *.json text eol=lf
+*.jsonc text eol=lf
+*.csv text eol=lf
 *.md text eol=lf
 *.ts text eol=lf
 *.tsx text eol=lf
 *.css text eol=lf
+*.scss text eol=lf
 *.html text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 *.sh text eol=lf
+*.cmake text eol=lf
+*.in text eol=lf
+CMakeLists.txt text eol=lf
+LICENSE text eol=lf
+
+.clang-format text eol=lf
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.prettierignore text eol=lf
 
 *.cmd text eol=crlf
 *.props text eol=crlf

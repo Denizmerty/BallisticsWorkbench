@@ -11,8 +11,8 @@ svg="$repo_root/assets/icon.svg"
 out="$repo_root/assets/icon.icns"
 
 if ! command -v rsvg-convert >/dev/null 2>&1; then
-  echo "rsvg-convert not found. Install it with: brew install librsvg" >&2
-  exit 1
+    echo "rsvg-convert not found. Install it with: brew install librsvg" >&2
+    exit 1
 fi
 
 work="$(mktemp -d)"
@@ -20,8 +20,9 @@ iconset="$work/icon.iconset"
 mkdir -p "$iconset"
 trap 'rm -rf "$work"' EXIT
 
-render() { # size filename
-  rsvg-convert -w "$1" -h "$1" "$svg" -o "$iconset/$2"
+render() {
+    # Arguments: pixel size, destination filename.
+    rsvg-convert -w "$1" -h "$1" "$svg" -o "$iconset/$2"
 }
 
 render 16 icon_16x16.png

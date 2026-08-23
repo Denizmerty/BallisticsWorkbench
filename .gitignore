@@ -17,6 +17,11 @@ yarn-error.log*
 **/x64/
 **/Debug/
 **/Release/
+# Lowercase source directories are release infrastructure, not build configurations.
+!/release/
+!/release/**
+!/scripts/release/
+!/scripts/release/**
 *.obj
 *.lib
 *.pdb
@@ -42,11 +47,15 @@ Testing/
 /.localappdata-build/
 /.smoke-profile/
 
-# Local configuration and credentials
+# Local configuration, credentials, and agent state
 .env
 .env.*
 !.env.example
 /.claude/
+/.agents/
+/.codex/
+/AGENTS.md
+/CLAUDE.md
 
 # Archived implementation retained outside the published source tree
 /reference/
@@ -55,3 +64,13 @@ Testing/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local planning and temporary working material
+/roadmap*.md
+/files.txt
+/plan*.md
+/planning*.md
+/notes*.md
+/scratch/
+/temp/
+/tmp/

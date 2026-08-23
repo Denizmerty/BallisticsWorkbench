@@ -1,0 +1,1913 @@
+{
+  "schemaVersion": 1,
+  "id": "independent-flight-matrix-rk4-v1",
+  "modelVersion": "2026.08.11",
+  "reference": {
+    "implementation": "validation/reference/generate-flight-matrix.mjs",
+    "integrator": "fixed-time classical RK4 over [x, y, z, vx, vy, vz]",
+    "stepS": 0.00002,
+    "rangeInterpolation": "linear interpolation across the fixed RK4 step",
+    "dragSources": [
+      "validation/sources/g1-gnu-ballistics.csv",
+      "validation/sources/g7-py-ballisticcalc-2.2.10.csv",
+      "Morrison sphere correlation with Collins compressibility correction and bisection inversion"
+    ],
+    "atmosphereModel": "independent JavaScript transcription of the declared production formulas",
+    "generatedAt": "2026-08-18"
+  },
+  "scenarios": [
+    {
+      "id": "cold-dense-strong-headwind-g1",
+      "category": "environment",
+      "projectile": {
+        "id": "builtin:federal-sp-150",
+        "massKg": 0.0097198365,
+        "muzzleVelocityMps": 859.536,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.312368144835017,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": -40,
+        "stationPressureHpa": 1080,
+        "relativeHumidityPercent": 20,
+        "headwindMps": 25,
+        "crosswindMps": -10,
+        "densityKgM3": 1.6136632735318421,
+        "speedOfSoundMps": 306.2726518710642,
+        "dynamicViscosityPaS": 0.000015108086919615961
+      },
+      "launch": {
+        "elevationRad": 0.04,
+        "azimuthRad": 0.02
+      },
+      "maximumDistanceM": 1200,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 100,
+          "timeS": 0.1261549139336529,
+          "positionM": {
+            "x": 100,
+            "y": 3.938191165787759,
+            "z": 1.910755293140817
+          },
+          "groundVelocityMps": {
+            "x": 732.2318018461743,
+            "y": 28.30598053627654,
+            "z": 13.287247827728542
+          },
+          "groundSpeedMps": 732.8991684562417,
+          "airspeedMps": 758.1184117093543,
+          "mach": 2.475305604590872,
+          "dragCoefficient": 0.5312154326334245
+        },
+        {
+          "distanceM": 300,
+          "timeS": 0.45276245576492014,
+          "positionM": {
+            "x": 300,
+            "y": 11.251553507907415,
+            "z": 5.046410920663553
+          },
+          "groundVelocityMps": {
+            "x": 512.0898702800879,
+            "y": 17.351232138407333,
+            "z": 6.517194450208517
+          },
+          "groundSpeedMps": 512.4251890019654,
+          "airspeedMps": 537.6238571033734,
+          "mach": 1.755376635226655,
+          "dragCoefficient": 0.6155852595646223
+        },
+        {
+          "distanceM": 600,
+          "timeS": 1.262299191692979,
+          "positionM": {
+            "x": 600,
+            "y": 18.914156997260783,
+            "z": 6.799377182623371
+          },
+          "groundVelocityMps": {
+            "x": 280.24215421894627,
+            "y": 3.5670350859058404,
+            "z": -0.6128484363227958
+          },
+          "groundSpeedMps": 280.2655246793398,
+          "airspeedMps": 305.4072937341322,
+          "mach": 0.9971745497626203,
+          "dragCoefficient": 0.46620566928103424
+        },
+        {
+          "distanceM": 900,
+          "timeS": 2.6100480092130627,
+          "positionM": {
+            "x": 900,
+            "y": 15.115884812145278,
+            "z": 3.584015277681502
+          },
+          "groundVelocityMps": {
+            "x": 166.69787137365847,
+            "y": -8.173071555316444,
+            "z": -4.104690495244977
+          },
+          "groundSpeedMps": 166.9485786199417,
+          "airspeedMps": 191.96256838768565,
+          "mach": 0.62677019059638,
+          "dragCoefficient": 0.4071052198331735
+        },
+        {
+          "distanceM": 1200,
+          "timeS": 4.874157779431012,
+          "positionM": {
+            "x": 1200,
+            "y": -22.552351890230906,
+            "z": -8.09043197296905
+          },
+          "groundVelocityMps": {
+            "x": 109.7804923587127,
+            "y": -24.94149843608639,
+            "z": -5.855078035221961
+          },
+          "groundSpeedMps": 112.73028335614711,
+          "airspeedMps": 137.13146919211655,
+          "mach": 0.44774310848311283,
+          "dragCoefficient": 0.27379940772148764
+        }
+      ]
+    },
+    {
+      "id": "hot-thin-tailwind-g7",
+      "category": "environment",
+      "projectile": {
+        "id": "reference:hornady-g7-variant",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 822.96,
+        "dragModel": "G7",
+        "ballisticCoefficient": 0.24,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 50,
+        "stationPressureHpa": 650,
+        "relativeHumidityPercent": 10,
+        "headwindMps": -18,
+        "crosswindMps": 0,
+        "densityKgM3": 0.6956753892889715,
+        "speedOfSoundMps": 361.44349730951865,
+        "dynamicViscosityPaS": 0.000019534205964493487
+      },
+      "launch": {
+        "elevationRad": 0.03,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 1600,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 100,
+          "timeS": 0.12430682715614104,
+          "positionM": {
+            "x": 100,
+            "y": 2.9247578383895574,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 786.7595118691687,
+            "y": 22.394012290236432,
+            "z": 0
+          },
+          "groundSpeedMps": 787.0781545075864,
+          "airspeedMps": 769.0856121887717,
+          "mach": 2.127816983604972,
+          "dragCoefficient": 0.2905309809837017
+        },
+        {
+          "distanceM": 400,
+          "timeS": 0.5330000143142285,
+          "positionM": {
+            "x": 400,
+            "y": 10.667832319206001,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 685.159487804196,
+            "y": 15.693869014161164,
+            "z": 0
+          },
+          "groundSpeedMps": 685.3392016022008,
+          "airspeedMps": 667.3440489670909,
+          "mach": 1.8463302118715867,
+          "dragCoefficient": 0.30808624347401625
+        },
+        {
+          "distanceM": 800,
+          "timeS": 1.1776114546073713,
+          "positionM": {
+            "x": 800,
+            "y": 17.898486058305224,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 562.0338358993529,
+            "y": 7.069959732453656,
+            "z": 0
+          },
+          "groundSpeedMps": 562.0783015082145,
+          "airspeedMps": 544.0797725830124,
+          "mach": 1.5052968904766184,
+          "dragCoefficient": 0.3433219980189928
+        },
+        {
+          "distanceM": 1200,
+          "timeS": 1.9722412153116573,
+          "positionM": {
+            "x": 1200,
+            "y": 20.037696010715926,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 450.8657243047872,
+            "y": -1.354611110800198,
+            "z": 0
+          },
+          "groundSpeedMps": 450.867759242266,
+          "airspeedMps": 432.86784386134474,
+          "mach": 1.197608608492028,
+          "dragCoefficient": 0.388739577594132
+        },
+        {
+          "distanceM": 1600,
+          "timeS": 2.9708454019401893,
+          "positionM": {
+            "x": 1600,
+            "y": 14.316339197029068,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 362.3274548647946,
+            "y": -9.933253639381473,
+            "z": 0
+          },
+          "groundSpeedMps": 362.4635900013463,
+          "airspeedMps": 344.47070369123037,
+          "mach": 0.9530416406862238,
+          "dragCoefficient": 0.21682440241745662
+        }
+      ]
+    },
+    {
+      "id": "crosswind-opposed-azimuth-g1",
+      "category": "wind_vector",
+      "projectile": {
+        "id": "builtin:hornady-amax-168",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 822.96,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.475,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 20,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.03,
+        "azimuthRad": -0.04
+      },
+      "maximumDistanceM": 1000,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 100,
+          "timeS": 0.12653460257036006,
+          "positionM": {
+            "x": 100,
+            "y": 2.9268078145830465,
+            "z": -3.904734819981983
+          },
+          "groundVelocityMps": {
+            "x": 759.940605474879,
+            "y": 21.629489178202405,
+            "z": -28.905421931325755
+          },
+          "groundSpeedMps": 760.7976617134569,
+          "airspeedMps": 761.8197286405207,
+          "mach": 2.2348905823558587,
+          "dragCoefficient": 0.5539457211489776
+        },
+        {
+          "distanceM": 250,
+          "timeS": 0.3364494961308993,
+          "positionM": {
+            "x": 250,
+            "y": 6.988648945428193,
+            "z": -9.35957725585544
+          },
+          "groundVelocityMps": {
+            "x": 671.9944151522237,
+            "y": 17.18802277382712,
+            "z": -23.245709166938873
+          },
+          "groundSpeedMps": 672.6160012349742,
+          "airspeedMps": 673.6038253187138,
+          "mach": 1.9760985294121214,
+          "dragCoefficient": 0.5861240328197939
+        },
+        {
+          "distanceM": 500,
+          "timeS": 0.7520199805972483,
+          "positionM": {
+            "x": 500,
+            "y": 12.59518848318416,
+            "z": -17.136734745009033
+          },
+          "groundVelocityMps": {
+            "x": 539.0677399000018,
+            "y": 10.121407077058166,
+            "z": -14.69131018851339
+          },
+          "groundSpeedMps": 539.3628701321317,
+          "airspeedMps": 540.2776675790989,
+          "mach": 1.5849700732802645,
+          "dragCoefficient": 0.6365364588323048
+        },
+        {
+          "distanceM": 750,
+          "timeS": 1.2739499503761762,
+          "positionM": {
+            "x": 750,
+            "y": 16.051113923549448,
+            "z": -22.786702527883314
+          },
+          "groundVelocityMps": {
+            "x": 427.32642903364814,
+            "y": 3.4364783977057645,
+            "z": -7.500279842578244
+          },
+          "groundSpeedMps": 427.40606047662027,
+          "airspeedMps": 428.224183957244,
+          "mach": 1.256247587038616,
+          "dragCoefficient": 0.6422628654358077
+        },
+        {
+          "distanceM": 1000,
+          "timeS": 1.928024447857973,
+          "positionM": {
+            "x": 1000,
+            "y": 16.10364344785568,
+            "z": -25.793779756660385
+          },
+          "groundVelocityMps": {
+            "x": 346.24372290190075,
+            "y": -3.0477041499638666,
+            "z": -2.282261584126559
+          },
+          "groundSpeedMps": 346.26465726015454,
+          "airspeedMps": 346.97334671536,
+          "mach": 1.0178884002997013,
+          "dragCoefficient": 0.4933239997756686
+        }
+      ]
+    },
+    {
+      "id": "steep-downward-g7",
+      "category": "geometry",
+      "projectile": {
+        "id": "reference:hornady-g7-variant",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 822.96,
+        "dragModel": "G7",
+        "ballisticCoefficient": 0.24,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 8,
+        "crosswindMps": -6,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": -0.12,
+        "azimuthRad": 0.08
+      },
+      "maximumDistanceM": 600,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 50,
+          "timeS": 0.06264553471288399,
+          "positionM": {
+            "x": 50,
+            "y": -6.068500627849571,
+            "z": 4.0019072289100155
+          },
+          "groundVelocityMps": {
+            "x": 782.1832346886276,
+            "y": -95.25795538061425,
+            "z": 62.49839515760619
+          },
+          "groundSpeedMps": 790.4370563735839,
+          "airspeedMps": 798.8464511941237,
+          "mach": 2.34351296429157,
+          "dragCoefficient": 0.27826327399967205
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.19592639970414624,
+          "positionM": {
+            "x": 150,
+            "y": -18.336971191826695,
+            "z": 11.963323786894966
+          },
+          "groundVelocityMps": {
+            "x": 719.7339425248065,
+            "y": -88.98465556649845,
+            "z": 57.0848706683959
+          },
+          "groundSpeedMps": 727.4571460971548,
+          "airspeedMps": 735.8632080327395,
+          "mach": 2.15874398063871,
+          "dragCoefficient": 0.2887103370842322
+        },
+        {
+          "distanceM": 300,
+          "timeS": 0.4184554472611669,
+          "positionM": {
+            "x": 300,
+            "y": -37.128775774252574,
+            "z": 23.785480457590083
+          },
+          "groundVelocityMps": {
+            "x": 631.4354437030934,
+            "y": -80.2365489672393,
+            "z": 49.430563162749614
+          },
+          "groundSpeedMps": 638.4293257121583,
+          "airspeedMps": 646.8292957082909,
+          "mach": 1.897552199061601,
+          "dragCoefficient": 0.3043762416675647
+        },
+        {
+          "distanceM": 450,
+          "timeS": 0.6731351220707201,
+          "positionM": {
+            "x": 450,
+            "y": -56.510443681287256,
+            "z": 35.437029624913386
+          },
+          "groundVelocityMps": {
+            "x": 549.345000078162,
+            "y": -72.27123786534308,
+            "z": 42.314411618102945
+          },
+          "groundSpeedMps": 555.6919743563435,
+          "airspeedMps": 564.084092405307,
+          "mach": 1.6548091082165217,
+          "dragCoefficient": 0.3255094709619148
+        },
+        {
+          "distanceM": 600,
+          "timeS": 0.9675548400500527,
+          "positionM": {
+            "x": 600,
+            "y": -76.67117805261108,
+            "z": 46.87769800612103
+          },
+          "groundVelocityMps": {
+            "x": 472.3253167664303,
+            "y": -64.9689775940465,
+            "z": 35.637827667951946
+          },
+          "groundSpeedMps": 478.10273756695335,
+          "airspeedMps": 486.4844156489429,
+          "mach": 1.4271610436459967,
+          "dragCoefficient": 0.3541974538895604
+        }
+      ]
+    },
+    {
+      "id": "low-velocity-subsonic-g7",
+      "category": "low_velocity",
+      "projectile": {
+        "id": "reference:hornady-g7-variant",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 280,
+        "dragModel": "G7",
+        "ballisticCoefficient": 0.2,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 0,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.290775107872613,
+        "speedOfSoundMps": 331.6035408407439,
+        "dynamicViscosityPaS": 0.00001716
+      },
+      "launch": {
+        "elevationRad": 0.02,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 400,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 50,
+          "timeS": 0.18069440691905853,
+          "positionM": {
+            "x": 50,
+            "y": 0.8412630077524741,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 273.5516555296473,
+            "y": 3.7199053194064238,
+            "z": 0
+          },
+          "groundSpeedMps": 273.5769470160016,
+          "airspeedMps": 273.5769470160016,
+          "mach": 0.8250121404686382,
+          "dragCoefficient": 0.1266019424749821
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.3655667031040827,
+          "positionM": {
+            "x": 100,
+            "y": 1.3548642527074164,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 267.4230900069572,
+            "y": 1.843848367393548,
+            "z": 0
+          },
+          "groundSpeedMps": 267.429446482004,
+          "airspeedMps": 267.429446482004,
+          "mach": 0.8064734345235469,
+          "dragCoefficient": 0.1248214497142605
+        },
+        {
+          "distanceM": 200,
+          "timeS": 0.747981443597658,
+          "positionM": {
+            "x": 200,
+            "y": 1.3378053156906586,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 255.7785725176061,
+            "y": -1.9052538248687803,
+            "z": 0
+          },
+          "groundSpeedMps": 255.7856683852351,
+          "airspeedMps": 255.7856683852351,
+          "mach": 0.7713598827585465,
+          "dragCoefficient": 0.12243983484137605
+        },
+        {
+          "distanceM": 300,
+          "timeS": 1.1476664417070932,
+          "positionM": {
+            "x": 300,
+            "y": -0.1790433725042763,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 244.79577922288863,
+            "y": -5.659015343132785,
+            "z": 0
+          },
+          "groundSpeedMps": 244.86118103936982,
+          "airspeedMps": 244.86118103936982,
+          "mach": 0.7384154596737765,
+          "dragCoefficient": 0.12112929470956085
+        },
+        {
+          "distanceM": 400,
+          "timeS": 1.5652001453080435,
+          "positionM": {
+            "x": 400,
+            "y": -3.333323855682547,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 234.36885629668103,
+            "y": -9.425460843537133,
+            "z": 0
+          },
+          "groundSpeedMps": 234.55830855871932,
+          "airspeedMps": 234.55830855871932,
+          "mach": 0.7073456090487539,
+          "dragCoefficient": 0.12034691218097508
+        }
+      ]
+    },
+    {
+      "id": "tabulated-transonic-wind",
+      "category": "tabulated_drag",
+      "projectile": {
+        "id": "reference:tabulated-transonic",
+        "massKg": 0.012,
+        "muzzleVelocityMps": 430,
+        "dragModel": "tabulatedCd",
+        "ballisticCoefficient": 0,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0.008,
+        "machCdPoints": [
+          {
+            "mach": 0,
+            "dragCoefficient": 0.2
+          },
+          {
+            "mach": 0.7,
+            "dragCoefficient": 0.22
+          },
+          {
+            "mach": 0.9,
+            "dragCoefficient": 0.28
+          },
+          {
+            "mach": 1,
+            "dragCoefficient": 0.4
+          },
+          {
+            "mach": 1.2,
+            "dragCoefficient": 0.34
+          },
+          {
+            "mach": 1.8,
+            "dragCoefficient": 0.25
+          }
+        ]
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 12,
+        "crosswindMps": 9,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.05,
+        "azimuthRad": -0.03
+      },
+      "maximumDistanceM": 500,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 50,
+          "timeS": 0.1191063010934333,
+          "positionM": {
+            "x": 50,
+            "y": 2.436184801597815,
+            "z": -1.4783508929097495
+          },
+          "groundVelocityMps": {
+            "x": 410.51007637485054,
+            "y": 19.434310863698254,
+            "z": -11.951698175242612
+          },
+          "groundSpeedMps": 411.14359819083234,
+          "airspeedMps": 423.47541927891797,
+          "mach": 1.2423165098317366,
+          "dragCoefficient": 0.33365252352523955
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.3743390761255087,
+          "positionM": {
+            "x": 150,
+            "y": 6.866842317197027,
+            "z": -4.291999208892494
+          },
+          "groundVelocityMps": {
+            "x": 373.72547222808413,
+            "y": 15.349722380813175,
+            "z": -10.127599847951846
+          },
+          "groundSpeedMps": 374.17764610937513,
+          "airspeedMps": 386.50435829197306,
+          "mach": 1.1338574178535397,
+          "dragCoefficient": 0.3598427746439381
+        },
+        {
+          "distanceM": 250,
+          "timeS": 0.6559542344486194,
+          "positionM": {
+            "x": 250,
+            "y": 10.60449623420752,
+            "z": -6.883905271923493
+          },
+          "groundVelocityMps": {
+            "x": 337.15523587383245,
+            "y": 11.265515574154742,
+            "z": -8.31413172698848
+          },
+          "groundSpeedMps": 337.44583225262215,
+          "airspeedMps": 349.76573550981607,
+          "mach": 1.0260802115437373,
+          "dragCoefficient": 0.3921759365368788
+        },
+        {
+          "distanceM": 350,
+          "timeS": 0.9686727094985763,
+          "positionM": {
+            "x": 350,
+            "y": 13.487798940426892,
+            "z": -9.214389936847676
+          },
+          "groundVelocityMps": {
+            "x": 304.7892279670188,
+            "y": 7.2907043154353754,
+            "z": -6.709145558091948
+          },
+          "groundSpeedMps": 304.9502262472782,
+          "airspeedMps": 317.2622678156358,
+          "mach": 0.9307273464069135,
+          "dragCoefficient": 0.31687281568829617
+        },
+        {
+          "distanceM": 500,
+          "timeS": 1.4912388513800623,
+          "positionM": {
+            "x": 500,
+            "y": 15.793101266522209,
+            "z": -12.260550089149241
+          },
+          "groundVelocityMps": {
+            "x": 271.48159095810126,
+            "y": 1.661318211239388,
+            "z": -5.057465286868508
+          },
+          "groundSpeedMps": 271.5337772036265,
+          "airspeedMps": 283.83478419782654,
+          "mach": 0.8326637684754098,
+          "dragCoefficient": 0.25979913054262294
+        }
+      ]
+    },
+    {
+      "id": "sphere-buckshot-reference",
+      "category": "sphere",
+      "projectile": {
+        "id": "builtin:winchester-00-buck",
+        "massKg": 0.0034966699909749735,
+        "muzzleVelocityMps": 403.86,
+        "dragModel": "sphere",
+        "ballisticCoefficient": 0,
+        "sphereDiameterM": 0.008382,
+        "materialDensityKgM3": 11340,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 5,
+        "stationPressureHpa": 1000,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.2503607547414848,
+        "speedOfSoundMps": 334.69611639808716,
+        "dynamicViscosityPaS": 0.00001740636836145871
+      },
+      "launch": {
+        "elevationRad": 0.02,
+        "azimuthRad": 0.01
+      },
+      "maximumDistanceM": 150,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 25,
+          "timeS": 0.0693431815319329,
+          "positionM": {
+            "x": 25,
+            "y": 0.4781235527426184,
+            "z": 0.2500083336666814
+          },
+          "groundVelocityMps": {
+            "x": 325.1542052728442,
+            "y": 5.8885762329281235,
+            "z": 3.251650441799125
+          },
+          "groundSpeedMps": 325.2237779856533,
+          "airspeedMps": 325.2237779856533,
+          "mach": 0.9716986903990023,
+          "dragCoefficient": 0.7983475712806707
+        },
+        {
+          "distanceM": 50,
+          "timeS": 0.15370444633666233,
+          "positionM": {
+            "x": 50,
+            "y": 0.897933483596039,
+            "z": 0.5000166673333657
+          },
+          "groundVelocityMps": {
+            "x": 272.6390931032553,
+            "y": 4.1744404555357555,
+            "z": 2.726481814365632
+          },
+          "groundSpeedMps": 272.68468006906136,
+          "airspeedMps": 272.68468006906136,
+          "mach": 0.8147231674021892,
+          "dragCoefficient": 0.6340781203387637
+        },
+        {
+          "distanceM": 75,
+          "timeS": 0.25246770460374723,
+          "positionM": {
+            "x": 75,
+            "y": 1.2350769341129586,
+            "z": 0.7500250010000522
+          },
+          "groundVelocityMps": {
+            "x": 236.29236376980413,
+            "y": 2.7122877958783858,
+            "z": 2.363002404970028
+          },
+          "groundSpeedMps": 236.31974412091557,
+          "airspeedMps": 236.31974412091557,
+          "mach": 0.706072561176172,
+          "dragCoefficient": 0.543231069155087
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.3655088653393848,
+          "positionM": {
+            "x": 100,
+            "y": 1.4620024859028276,
+            "z": 1.0000333346667352
+          },
+          "groundVelocityMps": {
+            "x": 207.55753514633577,
+            "y": 1.3406185188880277,
+            "z": 2.0756445400759893
+          },
+          "groundSpeedMps": 207.5722427356132,
+          "airspeedMps": 207.5722427356132,
+          "mach": 0.620181210853152,
+          "dragCoefficient": 0.5104724042692642
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.6383030426458247,
+          "positionM": {
+            "x": 150,
+            "y": 1.44752780501727,
+            "z": 1.5000500020001017
+          },
+          "groundVelocityMps": {
+            "x": 163.1866031186282,
+            "y": -1.3392012292165114,
+            "z": 1.6319204288965894
+          },
+          "groundSpeedMps": 163.2002575415102,
+          "airspeedMps": 163.2002575415102,
+          "mach": 0.4876072638602117,
+          "dragCoefficient": 0.46929181250851837
+        }
+      ]
+    },
+    {
+      "id": "builtin-1-white-blackout-hv",
+      "category": "builtin_load",
+      "projectile": {
+        "id": "builtin:white-blackout-hv",
+        "massKg": 0.028,
+        "muzzleVelocityMps": 575,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.054624716532086,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.03,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 200,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 25,
+          "timeS": 0.048119513471357116,
+          "positionM": {
+            "x": 25,
+            "y": 0.7395917292525007,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 470.6081751229912,
+            "y": 13.693608727087357,
+            "z": 0
+          },
+          "groundSpeedMps": 470.8073591316968,
+          "airspeedMps": 470.8073591316968,
+          "mach": 1.3811704967327827,
+          "dragCoefficient": 0.649251200135655
+        },
+        {
+          "distanceM": 50,
+          "timeS": 0.10695354655261344,
+          "positionM": {
+            "x": 50,
+            "y": 1.4511314137945839,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 385.90678721012415,
+            "y": 10.70328005714803,
+            "z": 0
+          },
+          "groundSpeedMps": 386.0551885661191,
+          "airspeedMps": 386.0551885661191,
+          "mach": 1.1325397239786623,
+          "dragCoefficient": 0.5994133639574557
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.25824243534330416,
+          "positionM": {
+            "x": 100,
+            "y": 2.7349058762177685,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 294.47513520488997,
+            "y": 6.837628733144681,
+            "z": 0
+          },
+          "groundSpeedMps": 294.5545084031656,
+          "airspeedMps": 294.5545084031656,
+          "mach": 0.8641113797294747,
+          "dragCoefficient": 0.29781587972988854
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.45789502674762134,
+          "positionM": {
+            "x": 150,
+            "y": 3.7225518174926187,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 209.265854276861,
+            "y": 3.2039669382176004,
+            "z": 0
+          },
+          "groundSpeedMps": 209.29038002346314,
+          "airspeedMps": 209.29038002346314,
+          "mach": 0.6139787166273678,
+          "dragCoefficient": 0.40292959071620293
+        },
+        {
+          "distanceM": 200,
+          "timeS": 0.7282616316949012,
+          "positionM": {
+            "x": 200,
+            "y": 4.156032296740107,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 165.9867792933952,
+            "y": 0.1506793591582206,
+            "z": 0
+          },
+          "groundSpeedMps": 165.98684768518126,
+          "airspeedMps": 165.98684768518126,
+          "mach": 0.48694255181411,
+          "dragCoefficient": 0.27094204360110336
+        }
+      ]
+    },
+    {
+      "id": "builtin-2-blackshock",
+      "category": "builtin_load",
+      "projectile": {
+        "id": "builtin:blackshock",
+        "massKg": 0.032,
+        "muzzleVelocityMps": 455,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.0709673760860212,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.03,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 200,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 25,
+          "timeS": 0.05943524973871183,
+          "positionM": {
+            "x": 25,
+            "y": 0.7337529163843146,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 390.4311133849632,
+            "y": 11.174375435541576,
+            "z": 0
+          },
+          "groundSpeedMps": 390.59098935510076,
+          "airspeedMps": 390.59098935510076,
+          "mach": 1.1458460457837265,
+          "dragCoefficient": 0.6082294639009304
+        },
+        {
+          "distanceM": 50,
+          "timeS": 0.12805514337009913,
+          "positionM": {
+            "x": 50,
+            "y": 1.4271600562246571,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 342.27857188011694,
+            "y": 9.163096814678902,
+            "z": 0
+          },
+          "groundSpeedMps": 342.40120197149946,
+          "airspeedMps": 342.40120197149946,
+          "mach": 1.0044754590944946,
+          "dragCoefficient": 0.4756526811269557
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.28875101844736234,
+          "positionM": {
+            "x": 100,
+            "y": 2.6459507274642267,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 287.5765741172076,
+            "y": 6.238637422338212,
+            "z": 0
+          },
+          "groundSpeedMps": 287.64423612837646,
+          "airspeedMps": 287.64423612837646,
+          "mach": 0.843839257798476,
+          "dragCoefficient": 0.5164652338369318
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.48791044155411767,
+          "positionM": {
+            "x": 150,
+            "y": 3.5541227871956185,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 215.87136456403235,
+            "y": 2.9910864153213677,
+            "z": 0
+          },
+          "groundSpeedMps": 215.89208562770727,
+          "airspeedMps": 215.89208562770727,
+          "mach": 0.6333456208013252,
+          "dragCoefficient": 0.6869649489974191
+        },
+        {
+          "distanceM": 200,
+          "timeS": 0.7442861861521685,
+          "positionM": {
+            "x": 200,
+            "y": 3.944155765971155,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 178.01812123999278,
+            "y": 0.16471067795950226,
+            "z": 0
+          },
+          "groundSpeedMps": 178.01819743898153,
+          "airspeedMps": 178.01819743898153,
+          "mach": 0.5222379757141724,
+          "dragCoefficient": 0.3510767723116802
+        }
+      ]
+    },
+    {
+      "id": "builtin-3-winchester-x123rs15",
+      "category": "builtin_load",
+      "projectile": {
+        "id": "builtin:winchester-x123rs15",
+        "massKg": 0.028349523125,
+        "muzzleVelocityMps": 536.448,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.068,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.03,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 200,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 25,
+          "timeS": 0.05059944038936834,
+          "positionM": {
+            "x": 25,
+            "y": 0.7383222628497507,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 456.0186145110109,
+            "y": 13.225673082392076,
+            "z": 0
+          },
+          "groundSpeedMps": 456.21036289087544,
+          "airspeedMps": 456.21036289087544,
+          "mach": 1.3383484376512844,
+          "dragCoefficient": 0.6494413002894178
+        },
+        {
+          "distanceM": 50,
+          "timeS": 0.11007917764974941,
+          "positionM": {
+            "x": 50,
+            "y": 1.4469225599731954,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 388.93163210776015,
+            "y": 10.739091863102976,
+            "z": 0
+          },
+          "groundSpeedMps": 389.0798665416269,
+          "airspeedMps": 389.0798665416269,
+          "mach": 1.1414129837118865,
+          "dragCoefficient": 0.6052894815071893
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.25673821327011936,
+          "positionM": {
+            "x": 100,
+            "y": 2.729743893153446,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 307.43397070902046,
+            "y": 7.185957432115231,
+            "z": 0
+          },
+          "groundSpeedMps": 307.5179414768039,
+          "airspeedMps": 307.5179414768039,
+          "mach": 0.9021411831095677,
+          "dragCoefficient": 0.33919180564137447
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.43550790772046327,
+          "positionM": {
+            "x": 150,
+            "y": 3.7522993775414153,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 243.91714288143717,
+            "y": 4.166516452407954,
+            "z": 0
+          },
+          "groundSpeedMps": 243.95272585234957,
+          "airspeedMps": 243.95272585234957,
+          "mach": 0.7156649126432947,
+          "dragCoefficient": 1.1275340616487333
+        },
+        {
+          "distanceM": 200,
+          "timeS": 0.6718168867937278,
+          "positionM": {
+            "x": 200,
+            "y": 4.3531668579526634,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 189.92425984347392,
+            "y": 1.1539400328131102,
+            "z": 0
+          },
+          "groundSpeedMps": 189.92776536012508,
+          "airspeedMps": 189.92776536012508,
+          "mach": 0.557176137836055,
+          "dragCoefficient": 0.4049002808696262
+        }
+      ]
+    },
+    {
+      "id": "builtin-4-hornady-amax-168",
+      "category": "builtin_load",
+      "projectile": {
+        "id": "builtin:hornady-amax-168",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 822.96,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.475,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.05,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 1000,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 100,
+          "timeS": 0.12653088111550712,
+          "positionM": {
+            "x": 100,
+            "y": 4.927679027084131,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 759.985310636045,
+            "y": 36.837137063480434,
+            "z": 0
+          },
+          "groundSpeedMps": 760.8775506279572,
+          "airspeedMps": 760.8775506279572,
+          "mach": 2.2321265888702366,
+          "dragCoefficient": 0.5542371414473087
+        },
+        {
+          "distanceM": 300,
+          "timeS": 0.4124172430831188,
+          "positionM": {
+            "x": 300,
+            "y": 14.242305178571321,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 644.1144196692994,
+            "y": 28.63357347154227,
+            "z": 0
+          },
+          "groundSpeedMps": 644.7505464562777,
+          "airspeedMps": 644.7505464562777,
+          "mach": 1.891453935979475,
+          "dragCoefficient": 0.5971314977217258
+        },
+        {
+          "distanceM": 500,
+          "timeS": 0.7518873697480908,
+          "positionM": {
+            "x": 500,
+            "y": 22.600111457591378,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 539.2668221693895,
+            "y": 20.91745781277713,
+            "z": 0
+          },
+          "groundSpeedMps": 539.6723501663034,
+          "airspeedMps": 539.6723501663034,
+          "mach": 1.5831943012251004,
+          "dragCoefficient": 0.6367148747927917
+        },
+        {
+          "distanceM": 750,
+          "timeS": 1.273535334190221,
+          "positionM": {
+            "x": 750,
+            "y": 31.06046736955556,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 427.6374934936441,
+            "y": 12.002284134565093,
+            "z": 0
+          },
+          "groundSpeedMps": 427.80589134088996,
+          "airspeedMps": 427.80589134088996,
+          "mach": 1.2550204749098361,
+          "dragCoefficient": 0.6420275308770645
+        },
+        {
+          "distanceM": 1000,
+          "timeS": 1.9269432645369426,
+          "positionM": {
+            "x": 1000,
+            "y": 36.12277361763663,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 346.7055754669798,
+            "y": 3.90291976462309,
+            "z": 0
+          },
+          "groundSpeedMps": 346.7275426650999,
+          "airspeedMps": 346.7275426650999,
+          "mach": 1.0171673043023433,
+          "dragCoefficient": 0.4923635191356533
+        }
+      ]
+    },
+    {
+      "id": "builtin-5-federal-sp-150",
+      "category": "builtin_load",
+      "projectile": {
+        "id": "builtin:federal-sp-150",
+        "massKg": 0.0097198365,
+        "muzzleVelocityMps": 859.536,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.312368144835017,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.05,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 1000,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 100,
+          "timeS": 0.12358141107464413,
+          "positionM": {
+            "x": 100,
+            "y": 4.932145500750714,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 762.8997883869582,
+            "y": 37.03288209687753,
+            "z": 0
+          },
+          "groundSpeedMps": 763.7980894695056,
+          "airspeedMps": 763.7980894695056,
+          "mach": 2.2406943438219606,
+          "dragCoefficient": 0.5533354725295992
+        },
+        {
+          "distanceM": 300,
+          "timeS": 0.4216440910362766,
+          "positionM": {
+            "x": 300,
+            "y": 14.239884164711581,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 590.567598871777,
+            "y": 26.080787802694804,
+            "z": 0
+          },
+          "groundSpeedMps": 591.143211353717,
+          "airspeedMps": 591.143211353717,
+          "mach": 1.7341903159105854,
+          "dragCoefficient": 0.6183947525825219
+        },
+        {
+          "distanceM": 500,
+          "timeS": 0.8119684371367354,
+          "positionM": {
+            "x": 500,
+            "y": 22.390341442297974,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 446.4843532251969,
+            "y": 16.36051746790463,
+            "z": 0
+          },
+          "groundSpeedMps": 446.78400173544713,
+          "airspeedMps": 446.78400173544713,
+          "mach": 1.310695063788486,
+          "dragCoefficient": 0.6477485685953432
+        },
+        {
+          "distanceM": 750,
+          "timeS": 1.4749127122820418,
+          "positionM": {
+            "x": 750,
+            "y": 29.600889834206352,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 328.2241860005562,
+            "y": 6.323388781587455,
+            "z": 0
+          },
+          "groundSpeedMps": 328.2850918354515,
+          "airspeedMps": 328.2850918354515,
+          "mach": 0.9630641377326162,
+          "dragCoefficient": 0.41907777055470036
+        },
+        {
+          "distanceM": 1000,
+          "timeS": 2.317141675622817,
+          "positionM": {
+            "x": 1000,
+            "y": 31.155243651957992,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 267.8480215474813,
+            "y": -2.3166380845134187,
+            "z": 0
+          },
+          "groundSpeedMps": 267.8580397503772,
+          "airspeedMps": 267.8580397503772,
+          "mach": 0.785794050666934,
+          "dragCoefficient": 0.38813898825978393
+        }
+      ]
+    },
+    {
+      "id": "builtin-6-winchester-00-buck",
+      "category": "builtin_load",
+      "projectile": {
+        "id": "builtin:winchester-00-buck",
+        "massKg": 0.0034966699909749735,
+        "muzzleVelocityMps": 403.86,
+        "dragModel": "sphere",
+        "ballisticCoefficient": 0,
+        "sphereDiameterM": 0.008382,
+        "materialDensityKgM3": 11340,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "launch": {
+        "elevationRad": 0.03,
+        "azimuthRad": 0
+      },
+      "maximumDistanceM": 150,
+      "tolerances": {
+        "positionAbsoluteM": 0.0005,
+        "velocityAbsoluteMps": 0.005,
+        "timeAbsoluteS": 0.000015,
+        "scalarAbsolute": 0.005,
+        "dragCoefficientAbsolute": 0.000002
+      },
+      "samples": [
+        {
+          "distanceM": 25,
+          "timeS": 0.06908885602828563,
+          "positionM": {
+            "x": 25,
+            "y": 0.7283658839149724,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 327.5041437324084,
+            "y": 9.212624879052775,
+            "z": 0
+          },
+          "groundSpeedMps": 327.6336927409331,
+          "airspeedMps": 327.6336927409331,
+          "mach": 0.9611531794744307,
+          "dragCoefficient": 0.7888410949798121
+        },
+        {
+          "distanceM": 50,
+          "timeS": 0.15257791260285752,
+          "positionM": {
+            "x": 50,
+            "y": 1.399285023517475,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 276.22407614775324,
+            "y": 7.013042313263045,
+            "z": 0
+          },
+          "groundSpeedMps": 276.3130887348035,
+          "airspeedMps": 276.3130887348035,
+          "mach": 0.8105979624563704,
+          "dragCoefficient": 0.6293685142178753
+        },
+        {
+          "distanceM": 75,
+          "timeS": 0.2498537451794488,
+          "positionM": {
+            "x": 75,
+            "y": 1.9896808125028462,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 240.33128621910768,
+            "y": 5.208258601209255,
+            "z": 0
+          },
+          "groundSpeedMps": 240.38771410658183,
+          "airspeedMps": 240.38771410658183,
+          "mach": 0.7052065182527709,
+          "dragCoefficient": 0.5424806411828503
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.3608155869918414,
+          "positionM": {
+            "x": 100,
+            "y": 2.4735521539401906,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 211.7637225747909,
+            "y": 3.5650300875216065,
+            "z": 0
+          },
+          "groundSpeedMps": 211.7937289870924,
+          "airspeedMps": 211.7937289870924,
+          "mach": 0.6213225944672726,
+          "dragCoefficient": 0.5103659532578355
+        },
+        {
+          "distanceM": 150,
+          "timeS": 0.6274079111589826,
+          "positionM": {
+            "x": 150,
+            "y": 2.992474992941455,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 167.4196194939898,
+            "y": 0.47407315304407843,
+            "z": 0
+          },
+          "groundSpeedMps": 167.42029069639906,
+          "airspeedMps": 167.42029069639906,
+          "mach": 0.49114773076350704,
+          "dragCoefficient": 0.4695821523802212
+        }
+      ]
+    }
+  ],
+  "zeroingCases": [
+    {
+      "id": "hornady-100m-zero",
+      "projectile": {
+        "id": "builtin:hornady-amax-168",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 822.96,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.475,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "zeroRangeM": 100,
+      "sightHeightM": 0.04,
+      "maximumDistanceM": 600,
+      "boreElevationRad": 0.0011629572439695503,
+      "zeroResidualM": 0,
+      "tolerances": {
+        "boreAngleAbsoluteRad": 2e-7,
+        "pathAbsoluteM": 0.0005,
+        "timeAbsoluteS": 0.000005,
+        "velocityAbsoluteMps": 0.002
+      },
+      "samples": [
+        {
+          "distanceM": 25,
+          "timeS": 0.03067316888408124,
+          "positionM": {
+            "x": 25,
+            "y": 0.024490253568905315,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 807.2100989334332,
+            "y": 0.64083235454474,
+            "z": 0
+          },
+          "groundSpeedMps": 807.2103533071349,
+          "airspeedMps": 807.2103533071349,
+          "mach": 2.368049485677636,
+          "dragCoefficient": 0.5404867429859846,
+          "sightPathM": -0.015509746431094686
+        },
+        {
+          "distanceM": 50,
+          "timeS": 0.061947278324231816,
+          "positionM": {
+            "x": 50,
+            "y": 0.03957258810035359,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 791.6360955915882,
+            "y": 0.3247368380905776,
+            "z": 0
+          },
+          "groundSpeedMps": 791.6361621966927,
+          "airspeedMps": 791.6361621966927,
+          "mach": 2.3223607069128085,
+          "dragCoefficient": 0.5449805628261647,
+          "sightPathM": -0.0004274118996464085
+        },
+        {
+          "distanceM": 100,
+          "timeS": 0.12636660729309734,
+          "positionM": {
+            "x": 100,
+            "y": 0.04,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 761.0102004504749,
+            "y": -0.30730989622354354,
+            "z": 0
+          },
+          "groundSpeedMps": 761.0102624991628,
+          "airspeedMps": 761.0102624991628,
+          "mach": 2.232515915242308,
+          "dragCoefficient": 0.554196061905497,
+          "sightPathM": 0
+        },
+        {
+          "distanceM": 200,
+          "timeS": 0.26320961596675835,
+          "positionM": {
+            "x": 200,
+            "y": -0.08976999446833339,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 701.7545751088137,
+            "y": -1.5727852432512037,
+            "z": 0
+          },
+          "groundSpeedMps": 701.7563375841881,
+          "airspeedMps": 701.7563375841881,
+          "mach": 2.058687339029909,
+          "dragCoefficient": 0.5750356419312213,
+          "sightPathM": -0.1297699944683334
+        },
+        {
+          "distanceM": 400,
+          "timeS": 0.5737735283690271,
+          "positionM": {
+            "x": 400,
+            "y": -0.9850345844760029,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 591.1945166176533,
+            "y": -4.127760078396058,
+            "z": 0
+          },
+          "groundSpeedMps": 591.2089265919838,
+          "airspeedMps": 591.2089265919838,
+          "mach": 1.7343830995332696,
+          "dragCoefficient": 0.6183689752927491,
+          "sightPathM": -1.025034584476003
+        },
+        {
+          "distanceM": 600,
+          "timeS": 0.9446399828399512,
+          "positionM": {
+            "x": 600,
+            "y": -3.0166451486339927,
+            "z": 0
+          },
+          "groundVelocityMps": {
+            "x": 492.61317902530647,
+            "y": -6.770936397964547,
+            "z": 0
+          },
+          "groundSpeedMps": 492.6597098699303,
+          "airspeedMps": 492.6597098699303,
+          "mach": 1.4452770183036623,
+          "dragCoefficient": 0.6470424458327033,
+          "sightPathM": -3.0566451486339927
+        }
+      ]
+    }
+  ],
+  "mpbrCases": [
+    {
+      "id": "hornady-20cm-vital-zone",
+      "projectile": {
+        "id": "builtin:hornady-amax-168",
+        "massKg": 0.01088621688,
+        "muzzleVelocityMps": 822.96,
+        "dragModel": "G1",
+        "ballisticCoefficient": 0.475,
+        "sphereDiameterM": 0,
+        "materialDensityKgM3": 0,
+        "dragReferenceDiameterM": 0,
+        "machCdPoints": []
+      },
+      "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0,
+        "densityKgM3": 1.221089389807009,
+        "speedOfSoundMps": 340.8756270463433,
+        "dynamicViscosityPaS": 0.000017892858603596875
+      },
+      "sightHeightM": 0.04,
+      "vitalZoneDiameterM": 0.2,
+      "maximumDistanceM": 800,
+      "boreElevationRad": 0.002084939115591453,
+      "maximumPathM": 0.09999999999994288,
+      "zeroM": 233.02378008329893,
+      "mpbrM": 274.0590963631701,
+      "tolerances": {
+        "zeroAbsoluteM": 0.5,
+        "mpbrAbsoluteM": 0.5,
+        "maximumPathAbsoluteM": 0.0005
+      }
+    }
+  ]
+}

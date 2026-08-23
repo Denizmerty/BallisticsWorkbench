@@ -1,0 +1,161 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/convergence-report.schema.json",
+    "title": "Ballistics Workbench adaptive-solver convergence report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "reportType",
+        "engineVersion",
+        "modelVersion",
+        "compiler",
+        "evidenceLevel",
+        "passed",
+        "referenceConfiguration",
+        "productionBudget",
+        "displayResolution",
+        "maximumProductionError",
+        "maximumHalfToleranceChange",
+        "analyticStepRefinement",
+        "scenarios"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "reportType": { "const": "adaptive_solver_convergence" },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "compiler": { "type": "string", "minLength": 1 },
+        "evidenceLevel": {
+            "const": "numerical_self_convergence_and_analytic_step_refinement"
+        },
+        "passed": { "type": "boolean" },
+        "referenceConfiguration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["toleranceScale", "maximumTimeStepS", "relationshipToProduction"],
+            "properties": {
+                "toleranceScale": { "type": "number", "exclusiveMinimum": 0, "maximum": 0.01 },
+                "maximumTimeStepS": { "type": "number", "exclusiveMinimum": 0 },
+                "relationshipToProduction": { "type": "string", "minLength": 1 }
+            }
+        },
+        "productionBudget": { "$ref": "#/$defs/metrics" },
+        "displayResolution": { "$ref": "#/$defs/metrics" },
+        "maximumProductionError": { "$ref": "#/$defs/metrics" },
+        "maximumHalfToleranceChange": { "$ref": "#/$defs/metrics" },
+        "analyticStepRefinement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "model",
+                "velocityEquation",
+                "timeEquation",
+                "distanceM",
+                "passed",
+                "rows"
+            ],
+            "properties": {
+                "model": { "type": "string", "minLength": 1 },
+                "velocityEquation": { "type": "string", "minLength": 1 },
+                "timeEquation": { "type": "string", "minLength": 1 },
+                "distanceM": { "type": "number", "exclusiveMinimum": 0 },
+                "passed": { "type": "boolean" },
+                "rows": {
+                    "type": "array",
+                    "minItems": 4,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "maximumTimeStepS",
+                            "acceptedSteps",
+                            "speedErrorMps",
+                            "timeErrorS",
+                            "observedSpeedOrder",
+                            "observedTimeOrder"
+                        ],
+                        "properties": {
+                            "maximumTimeStepS": { "type": "number", "exclusiveMinimum": 0 },
+                            "acceptedSteps": { "type": "integer", "minimum": 1 },
+                            "speedErrorMps": { "type": "number", "minimum": 0 },
+                            "timeErrorS": { "type": "number", "minimum": 0 },
+                            "observedSpeedOrder": { "type": "number", "minimum": 0 },
+                            "observedTimeOrder": { "type": "number", "minimum": 0 }
+                        }
+                    }
+                }
+            }
+        },
+        "scenarios": {
+            "type": "array",
+            "minItems": 4,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "maximumDistanceM",
+                    "comparisonSamples",
+                    "productionBudgetPassed",
+                    "halfToleranceDisplayPassed",
+                    "tighterSolutionImproved",
+                    "halfToleranceChange",
+                    "toleranceRows"
+                ],
+                "properties": {
+                    "id": { "type": "string", "minLength": 1 },
+                    "maximumDistanceM": { "type": "number", "exclusiveMinimum": 0 },
+                    "comparisonSamples": { "type": "integer", "minimum": 2 },
+                    "productionBudgetPassed": { "type": "boolean" },
+                    "halfToleranceDisplayPassed": { "type": "boolean" },
+                    "tighterSolutionImproved": { "type": "boolean" },
+                    "halfToleranceChange": { "$ref": "#/$defs/metrics" },
+                    "toleranceRows": {
+                        "type": "array",
+                        "minItems": 3,
+                        "items": { "$ref": "#/$defs/toleranceRow" }
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["positionM", "velocityMps", "timeS"],
+            "properties": {
+                "positionM": { "type": "number", "minimum": 0 },
+                "velocityMps": { "type": "number", "minimum": 0 },
+                "timeS": { "type": "number", "minimum": 0 }
+            }
+        },
+        "toleranceRow": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "toleranceScale",
+                "relativeTolerance",
+                "absolutePositionToleranceM",
+                "absoluteVelocityToleranceMps",
+                "attemptedSteps",
+                "acceptedSteps",
+                "rejectedSteps",
+                "errorToReference"
+            ],
+            "properties": {
+                "id": { "enum": ["production", "half", "tenth"] },
+                "toleranceScale": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+                "relativeTolerance": { "type": "number", "exclusiveMinimum": 0 },
+                "absolutePositionToleranceM": { "type": "number", "exclusiveMinimum": 0 },
+                "absoluteVelocityToleranceMps": { "type": "number", "exclusiveMinimum": 0 },
+                "attemptedSteps": { "type": "integer", "minimum": 1 },
+                "acceptedSteps": { "type": "integer", "minimum": 1 },
+                "rejectedSteps": { "type": "integer", "minimum": 0 },
+                "errorToReference": { "$ref": "#/$defs/metrics" }
+            }
+        }
+    }
+}

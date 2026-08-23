@@ -1,0 +1,49 @@
+{
+    "schemaVersion": 1,
+    "id": "builtin-blackshock-effective-g1",
+    "model": "G1",
+    "parameters": {
+        "loadId": "builtin:blackshock",
+        "massKg": 0.032,
+        "muzzleVelocityMps": 455,
+        "initialBallisticCoefficient": 0.08,
+        "implementedBallisticCoefficient": 0.0709673760860212,
+        "fitKind": "constant",
+        "coefficientToleranceAbsolute": 0.000002,
+        "atmosphere": {
+            "temperatureC": 15,
+            "stationPressureHpa": 1013.25,
+            "relativeHumidityPercent": 0,
+            "headwindMps": 0,
+            "crosswindMps": 0,
+            "qualification": "Assumed ICAO-like sea-level atmosphere because the publication does not report calculation conditions."
+        },
+        "parameterStatus": "fitted_to_same_table",
+        "evidenceLevel": "calibration_only",
+        "uncertaintyQualification": "The publication rounds velocity to whole metres per second and reports no measurement or calculation uncertainty. The 1 m/s value is a fitting weight and is not a claimed source standard deviation.",
+        "assumptions": [
+            "The published V1 value of 455 m/s supplies the launch velocity and is excluded from the fitted observations.",
+            "The single 33 m value exactly determines one constant coefficient and leaves zero residual degrees of freedom.",
+            "The fit must report insufficient_information, no confidence interval, and no validation claim."
+        ]
+    },
+    "observations": [
+        {
+            "distanceM": 33,
+            "velocityMps": 373,
+            "standardDeviationMps": 1,
+            "rangeStandardDeviationM": null,
+            "role": "calibration",
+            "sourceId": "manufacturer-attributed-bp-blackshock-2018",
+            "lot": null,
+            "barrel": null
+        }
+    ],
+    "method": {
+        "implementation": "calibrate_reference_ballistic_coefficient",
+        "objective": "Minimize the sum of squared velocity residuals divided by the declared fitting-weight variance using calibration-role observations only.",
+        "optimizer": "Levenberg-Marquardt over log ballistic coefficient",
+        "version": "2026.08.11",
+        "randomSeed": null
+    }
+}

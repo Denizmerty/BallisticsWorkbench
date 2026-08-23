@@ -1,0 +1,27 @@
+# Dependencies, build products, caches, and local-only files
+node_modules/
+/build/
+/dist/
+/dist-*/
+/outputs/
+/x64/
+/tmp/
+*.tsbuildinfo
+roadmap*.md
+plan*.md
+planning*.md
+notes*.md
+
+# Package-manager output must only be updated by npm.
+package-lock.json
+
+# Generated source and evidence must only be updated by their generators.
+src/Ballistics.Desktop/shared/productIdentity.ts
+docs/generated/
+validation/scenarios/independent-flight-matrix.json
+
+# Binary and user-managed visual assets are outside the formatting pass.
+assets/
+*.ico
+*.png
+*.svg

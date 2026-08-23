@@ -1,0 +1,31 @@
+{
+    "protocolVersion": 1,
+    "requestId": "fuzz-calculation",
+    "scenario": {
+        "displayDistanceM": 100,
+        "solutionHorizonM": 500,
+        "vitalZoneM": 0.2,
+        "atmosphere": {
+            "temperatureC": 15,
+            "stationPressureHpa": 1013.25,
+            "relativeHumidityPercent": 50,
+            "headwindMps": 0,
+            "crosswindMps": 0
+        },
+        "firearms": {
+            "shotgun": {
+                "sightHeightM": 0.025,
+                "zeroRangeM": 50,
+                "muzzleVelocityMultiplier": 1
+            },
+            "rifle": {
+                "sightHeightM": 0.04,
+                "zeroRangeM": 100,
+                "muzzleVelocityMultiplier": 1,
+                "twistInches": 10,
+                "twistDirection": 1
+            }
+        }
+    },
+    "customLoads": []
+}

@@ -1,0 +1,30 @@
+{
+    "schemaVersion": 1,
+    "runs": [
+        {
+            "id": "windows-msvc-2026-08-23",
+            "recordedAt": "2026-08-23T00:00:00Z",
+            "engineVersion": "1.0.2",
+            "modelVersion": "2026.08.9",
+            "platform": "windows",
+            "compiler": "MSVC 1951",
+            "hardwareConcurrency": 16,
+            "benchmarks": [
+                { "id": "six-builtins-100m", "medianMs": 2.9766, "p95Ms": 3.2794 },
+                { "id": "six-builtins-500m", "medianMs": 12.8644, "p95Ms": 12.9579 },
+                { "id": "six-builtins-2000m", "medianMs": 31.219, "p95Ms": 31.5969 },
+                { "id": "nine-loads-2000m", "medianMs": 50.5928, "p95Ms": 50.8279 },
+                {
+                    "id": "nine-loads-2000m-full-calculation",
+                    "medianMs": 1690.0064,
+                    "p95Ms": 1691.2739
+                },
+                { "id": "sphere-transonic-500m", "medianMs": 2.3855, "p95Ms": 2.4481 },
+                { "id": "strong-wind-rifle-2000m", "medianMs": 7.6316, "p95Ms": 7.8257 },
+                { "id": "native-mpbr-rifle", "medianMs": 220.0168, "p95Ms": 220.6425 },
+                { "id": "constant-g7-calibration", "medianMs": 49.8958, "p95Ms": 49.902 },
+                { "id": "three-input-uncertainty", "medianMs": 9.8575, "p95Ms": 9.9487 }
+            ]
+        }
+    ]
+}

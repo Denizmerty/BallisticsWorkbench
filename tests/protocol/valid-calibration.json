@@ -1,0 +1,47 @@
+{
+    "protocolVersion": 2,
+    "requestId": "fixture-calibration",
+    "operation": "calibrateReferenceBc",
+    "atmosphere": {
+        "temperatureC": 15,
+        "stationPressureHpa": 1013.25,
+        "relativeHumidityPercent": 50,
+        "headwindMps": 0,
+        "crosswindMps": 0
+    },
+    "projectile": {
+        "curve": "G7",
+        "massKg": 0.0109,
+        "muzzleVelocityMps": 820,
+        "initialBallisticCoefficient": 0.35
+    },
+    "fit": {
+        "kind": "constant"
+    },
+    "observations": [
+        {
+            "distanceM": 100,
+            "velocityMps": 750,
+            "standardDeviationMps": 1,
+            "role": "calibration"
+        },
+        {
+            "distanceM": 200,
+            "velocityMps": 690,
+            "standardDeviationMps": 1,
+            "role": "calibration"
+        },
+        {
+            "distanceM": 300,
+            "velocityMps": 635,
+            "standardDeviationMps": 1,
+            "role": "calibration"
+        },
+        {
+            "distanceM": 400,
+            "velocityMps": 585,
+            "standardDeviationMps": 1,
+            "role": "holdout"
+        }
+    ]
+}

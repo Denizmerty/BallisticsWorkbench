@@ -1,17 +1,16 @@
-const EM_DASH = '—';
+const UNAVAILABLE_VALUE = 'N/A';
 
 /**
  * Format a number for on-screen display with grouped thousands and a fixed
- * number of fractional digits. Non-finite values render as an em dash so the
- * interface never shows "NaN" or "Infinity". CSV export deliberately does not
- * use this helper; exported values stay machine-parseable and ungrouped.
+ * number of fractional digits. Non-finite values render as "N/A". CSV export
+ * keeps values machine-parseable and ungrouped, so it does not use this helper.
  */
 export function formatNumber(value: number, digits: number): string {
-  if (!Number.isFinite(value)) return EM_DASH;
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+    if (!Number.isFinite(value)) return UNAVAILABLE_VALUE;
+    return value.toLocaleString('en-US', {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+    });
 }
 
 /**
@@ -19,5 +18,5 @@ export function formatNumber(value: number, digits: number): string {
  * ranges near the muzzle remain legible on the interactive chart.
  */
 export function formatDistance(value: number, unit: string): string {
-  return `${formatNumber(value, value >= 10 ? 1 : 2)} ${unit}`;
+    return `${formatNumber(value, value >= 10 ? 1 : 2)} ${unit}`;
 }

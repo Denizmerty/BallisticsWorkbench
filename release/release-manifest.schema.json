@@ -1,0 +1,179 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/release-manifest.schema.json",
+    "title": "Ballistics Workbench release manifest",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "release",
+        "identities",
+        "source",
+        "artifacts",
+        "toolchains",
+        "supplyChain"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "release": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["version", "tag", "commit", "repository", "ref", "generatedAt"],
+            "properties": {
+                "version": { "$ref": "#/$defs/shortString" },
+                "tag": {
+                    "type": "string",
+                    "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+                },
+                "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+                "repository": {
+                    "type": "string",
+                    "pattern": "^[^/\\s]+/[^/\\s]+$",
+                    "maxLength": 200
+                },
+                "ref": { "type": "string", "minLength": 1, "maxLength": 300 },
+                "generatedAt": { "type": "string", "format": "date-time" }
+            }
+        },
+        "identities": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "application",
+                "engine",
+                "model",
+                "protocol",
+                "profileInterchange",
+                "dragDataInterchange"
+            ],
+            "properties": {
+                "application": { "$ref": "#/$defs/shortString" },
+                "engine": { "$ref": "#/$defs/shortString" },
+                "model": { "$ref": "#/$defs/shortString" },
+                "protocol": { "type": "integer", "minimum": 1 },
+                "profileInterchange": { "type": "integer", "minimum": 1 },
+                "dragDataInterchange": { "type": "integer", "minimum": 1 }
+            }
+        },
+        "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["packageLockSha256", "validationManifestSha256", "validationDatasets"],
+            "properties": {
+                "packageLockSha256": { "$ref": "#/$defs/sha256" },
+                "validationManifestSha256": { "$ref": "#/$defs/sha256" },
+                "validationDatasets": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "path", "sha256"],
+                        "properties": {
+                            "id": { "$ref": "#/$defs/shortString" },
+                            "path": { "$ref": "#/$defs/relativePath" },
+                            "sha256": { "$ref": "#/$defs/sha256" }
+                        }
+                    }
+                }
+            }
+        },
+        "artifacts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["file", "kind", "platform", "bytes", "sha256", "signed", "notarized"],
+                "properties": {
+                    "file": { "$ref": "#/$defs/fileName" },
+                    "kind": {
+                        "enum": [
+                            "windows-installer",
+                            "macos-disk-image",
+                            "linux-package",
+                            "archive"
+                        ]
+                    },
+                    "platform": { "enum": ["windows", "macos", "linux", "portable"] },
+                    "bytes": { "type": "integer", "minimum": 1 },
+                    "sha256": { "$ref": "#/$defs/sha256" },
+                    "signed": { "type": "boolean" },
+                    "notarized": { "type": "boolean" }
+                }
+            }
+        },
+        "toolchains": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/toolchain" }
+        },
+        "supplyChain": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sbom", "licenseReport", "checksums"],
+            "properties": {
+                "sbom": { "$ref": "#/$defs/supportingArtifact" },
+                "licenseReport": { "$ref": "#/$defs/supportingArtifact" },
+                "checksums": { "$ref": "#/$defs/fileName" }
+            }
+        }
+    },
+    "$defs": {
+        "shortString": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240,
+            "pattern": "^[^/\\\\]+$"
+        },
+        "relativePath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": "^(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+$"
+        },
+        "supportingArtifact": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "sha256", "format"],
+            "properties": {
+                "file": { "$ref": "#/$defs/fileName" },
+                "sha256": { "$ref": "#/$defs/sha256" },
+                "format": { "$ref": "#/$defs/shortString" }
+            }
+        },
+        "toolchain": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "platform",
+                "runner",
+                "architecture",
+                "compiler",
+                "cmake",
+                "node",
+                "npm",
+                "electron",
+                "electronBuilder",
+                "signed",
+                "notarized"
+            ],
+            "properties": {
+                "platform": { "enum": ["windows", "macos", "linux", "portable"] },
+                "runner": { "$ref": "#/$defs/shortString" },
+                "architecture": { "$ref": "#/$defs/shortString" },
+                "compiler": { "$ref": "#/$defs/shortString" },
+                "cmake": { "$ref": "#/$defs/shortString" },
+                "node": { "$ref": "#/$defs/shortString" },
+                "npm": { "$ref": "#/$defs/shortString" },
+                "electron": { "$ref": "#/$defs/shortString" },
+                "electronBuilder": { "$ref": "#/$defs/shortString" },
+                "signed": { "type": "boolean" },
+                "notarized": { "type": "boolean" },
+                "notes": { "type": "string", "maxLength": 1000 }
+            }
+        }
+    }
+}

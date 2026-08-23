@@ -1,0 +1,170 @@
+{
+    "schemaVersion": 1,
+    "modelVersion": "2026.08.11",
+    "generatedFrom": "src/Ballistics.Core/src/ballistics.cpp",
+    "loads": [
+        {
+            "id": "builtin:white-blackout-hv",
+            "manufacturer": "Baschieri & Pellagri",
+            "product": "White Blackout HV 12/70, 28 g",
+            "firearmGroup": "shotgun",
+            "implementation": {
+                "massKg": 0.028,
+                "muzzleVelocityMps": 575,
+                "dragModel": "G1",
+                "ballisticCoefficient": 0.054624716532086,
+                "parameterStatus": "fitted_to_same_table",
+                "pelletCount": 1
+            },
+            "provenance": {
+                "status": "manufacturer_attributed_source_identified",
+                "sourceDatasetIds": [
+                    "manufacturer-attributed-bp-white-blackout-hv-2018",
+                    "secondary-bp-white-blackout-hv-caccia-magazine-2019"
+                ],
+                "manufacturerAttributedSourceIdentified": true,
+                "primarySourceArchived": false,
+                "knownSourceFacts": "A 2018 Hunting Spot report by B&P ballistic consultant Gianluca Garolini states that its study was conducted at the B&P test bench and publishes calculated White Blackout HV velocities of 575 m/s at 1 m and 443 m/s at 33 m. Caccia Magazine separately attributes 384 m/s at 50 m to B&P. Checksummed numerical transcriptions, publication/retrieval dates, and source qualifications are recorded in the validation manifest.",
+                "gap": "No manufacturer-controlled copy of the 2018 report or underlying B&P calculation record was located. The 50 m value is secondary attribution only. The source does not report the ammunition lot, atmosphere, calculation method, pressure-barrel dimensions, rounding beyond whole m/s, or uncertainty. The implementation uses the published V1 value as launch velocity."
+            },
+            "validation": {
+                "level": "calibration_only",
+                "summary": "The effective G1 BC was fitted to the same 33 m manufacturer-attributed and 50 m secondary-attributed values used by the native publication-conformance report. The sources describe the velocity table as calculated, and there is no independent holdout."
+            }
+        },
+        {
+            "id": "builtin:blackshock",
+            "manufacturer": "Baschieri & Pellagri",
+            "product": "BlackShock 12/70, 32 g",
+            "firearmGroup": "shotgun",
+            "implementation": {
+                "massKg": 0.032,
+                "muzzleVelocityMps": 455,
+                "dragModel": "G1",
+                "ballisticCoefficient": 0.0709673760860212,
+                "parameterStatus": "fitted_to_same_table",
+                "pelletCount": 1
+            },
+            "provenance": {
+                "status": "manufacturer_attributed_source_identified",
+                "sourceDatasetIds": ["manufacturer-attributed-bp-blackshock-2018"],
+                "manufacturerAttributedSourceIdentified": true,
+                "primarySourceArchived": false,
+                "knownSourceFacts": "A 2018 Hunting Spot report by B&P ballistic consultant Gianluca Garolini states that its study was conducted at the B&P test bench and publishes calculated BlackShock velocities of 455 m/s at 1 m and 373 m/s at 33 m. A checksummed numerical transcription, publication/retrieval dates, and source qualification are recorded in the validation manifest.",
+                "gap": "No manufacturer-controlled copy of the report or underlying B&P calculation record was located. The source does not report the ammunition lot, atmosphere, calculation method, pressure-barrel dimensions, rounding beyond whole m/s, or uncertainty. The implementation uses the published V1 value as launch velocity."
+            },
+            "validation": {
+                "level": "calibration_only",
+                "summary": "A single 33 m manufacturer-attributed calculated value constrains the effective G1 BC and is reproduced by the native publication-conformance report. No independent holdout data exist."
+            }
+        },
+        {
+            "id": "builtin:winchester-x123rs15",
+            "manufacturer": "Winchester Ammunition",
+            "product": "Super-X X123RS15 12/76, 1 oz",
+            "firearmGroup": "shotgun",
+            "implementation": {
+                "massKg": 0.028349523125,
+                "muzzleVelocityMps": 536.448,
+                "dragModel": "G1",
+                "ballisticCoefficient": 0.068,
+                "parameterStatus": "manufacturer_published",
+                "pelletCount": 1
+            },
+            "provenance": {
+                "status": "primary_source_identified",
+                "sourceDatasetIds": ["manufacturer-winchester-x123rs15-2026"],
+                "primarySourceIdentified": true,
+                "primarySourceArchived": false,
+                "knownSourceFacts": "The Winchester 2026 catalog identifies X123RS15 as a 3-inch 12-gauge, 1-ounce rifled slug with G1 BC 0.068 and publishes muzzle, 50, 100, and 125 yard velocity and energy. The locator, retrieval date, normalization, rounding limits, and a checksummed numerical transcription are recorded in the validation manifest.",
+                "gap": "The linked manufacturer catalog is not redistributed or independently archived. Test barrel, ammunition lot, sample size, atmosphere, measurement method, and uncertainty are not published in the located table."
+            },
+            "validation": {
+                "level": "manufacturer_conformance",
+                "summary": "The native validation target compares the unmodified manufacturer-published G1 BC against the checksummed muzzle, 50, 100, and 125 yard velocity series and emits a machine-readable residual report. This is catalog conformance, not independent empirical validation."
+            }
+        },
+        {
+            "id": "builtin:hornady-amax-168",
+            "manufacturer": "Hornady Manufacturing",
+            "product": "BLACK .308 Winchester 168 gr A-MAX, item 80971",
+            "firearmGroup": "rifle",
+            "implementation": {
+                "massKg": 0.01088621688,
+                "muzzleVelocityMps": 822.96,
+                "dragModel": "G1",
+                "ballisticCoefficient": 0.475,
+                "parameterStatus": "manufacturer_published",
+                "pelletCount": 1
+            },
+            "provenance": {
+                "status": "primary_source_identified",
+                "sourceDatasetIds": ["manufacturer-hornady-80971-2022"],
+                "primarySourceIdentified": true,
+                "primarySourceArchived": false,
+                "knownSourceFacts": "Hornady's 2022 Standard Ballistics Chart identifies item 80971, G1 BC 0.475, 2,700 ft/s muzzle velocity, a 24-inch barrel basis, and velocity, energy, and trajectory through 500 yards. The locator, retrieval date, normalization, rounding limits, and a checksummed numerical transcription are recorded in the validation manifest.",
+                "gap": "The linked manufacturer PDF is not redistributed or independently archived. Ammunition lot, sample size, measurement method, atmosphere, and uncertainty are not published in the located chart."
+            },
+            "validation": {
+                "level": "manufacturer_conformance",
+                "summary": "The native validation target compares the unmodified manufacturer-published G1 BC against the checksummed muzzle-through-500-yard velocity series and emits a machine-readable residual report. This is catalog conformance, not independent empirical validation."
+            }
+        },
+        {
+            "id": "builtin:federal-sp-150",
+            "manufacturer": "Federal Premium Ammunition",
+            "product": "Power-Shok .308 Winchester 150 gr SP, 308A",
+            "firearmGroup": "rifle",
+            "implementation": {
+                "massKg": 0.0097198365,
+                "muzzleVelocityMps": 859.536,
+                "dragModel": "G1",
+                "ballisticCoefficient": 0.312368144835017,
+                "parameterStatus": "fitted_to_same_table",
+                "pelletCount": 1
+            },
+            "provenance": {
+                "status": "primary_source_identified",
+                "sourceDatasetIds": ["manufacturer-federal-308a-2022"],
+                "primarySourceIdentified": true,
+                "primarySourceArchived": false,
+                "knownSourceFacts": "Federal's 2022 catalog publishes the 308A muzzle-through-500-yard velocity series. The 2019 catalog cross-check identifies a 24-inch barrel for the same product and series. The locator, retrieval date, normalization, rounding limits, and a checksummed numerical transcription are recorded in the validation manifest.",
+                "gap": "The linked manufacturer PDFs are not redistributed or independently archived. Ammunition lot, sample size, measurement method, atmosphere, and uncertainty are not published in the located tables."
+            },
+            "validation": {
+                "level": "calibration_only",
+                "summary": "The effective G1 BC 0.312368144835017 is reproducibly fitted to the same checksummed manufacturer series used by the native conformance report. The report labels this fitted-to-same-table and no physically separate holdout is recorded."
+            }
+        },
+        {
+            "id": "builtin:winchester-00-buck",
+            "manufacturer": "Winchester Ammunition",
+            "product": "Super-X 12/70 nine-pellet 00 buck",
+            "firearmGroup": "shotgun",
+            "implementation": {
+                "massKg": 0.0034966699909749735,
+                "muzzleVelocityMps": 403.86,
+                "dragModel": "sphere",
+                "sphereDiameterM": 0.008382,
+                "materialDensityKgM3": 11340,
+                "parameterStatus": "nominal_geometry_and_material_derivation",
+                "pelletCount": 9
+            },
+            "provenance": {
+                "status": "primary_source_identified",
+                "sourceDatasetIds": [
+                    "manufacturer-winchester-xb1200-2019",
+                    "manufacturer-winchester-buckshot-diameters-2022"
+                ],
+                "primarySourceIdentified": true,
+                "primarySourceArchived": false,
+                "knownSourceFacts": "Winchester's 2019 catalog identifies XB1200 as a 2.75-inch 12-gauge load with nine 00-buck pellets at a nominal 1,325 ft/s at 3 feet. Winchester's 2022 Shotshell Ammo 101 guide gives a nominal 0.33-inch 00-buck diameter. Both locators, retrieval dates, limitations, and checksummed numerical transcriptions are recorded in the validation manifest. Per-pellet mass remains a pure-lead-sphere derivation.",
+                "gap": "The linked manufacturer documents are not redistributed or independently archived. Pellet diameter tolerance, alloy, deformation, ammunition lot, test barrel, atmosphere, pattern distribution, and velocity uncertainty are not published in the located sources."
+            },
+            "validation": {
+                "level": "inventory_only",
+                "summary": "Numerical integrator convergence is tested, but no raw sphere or buckshot velocity-decay holdout dataset validates the aerodynamic correlation for this load."
+            }
+        }
+    ]
+}

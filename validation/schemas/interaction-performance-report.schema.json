@@ -1,0 +1,109 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ballisticsworkbench.local/schemas/interaction-performance-report.schema.json",
+    "title": "Ballistics Workbench interaction performance report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "schemaVersion",
+        "engineVersion",
+        "modelVersion",
+        "platform",
+        "architecture",
+        "host",
+        "policy",
+        "passed",
+        "warmNative",
+        "coldProcess",
+        "persistentWorker"
+    ],
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "architecture": { "type": "string", "minLength": 1 },
+        "host": { "$ref": "#/$defs/host" },
+        "policy": { "type": "string", "minLength": 1 },
+        "passed": { "type": "boolean" },
+        "warmNative": { "$ref": "#/$defs/warmNative" },
+        "coldProcess": { "$ref": "#/$defs/coldProcess" },
+        "persistentWorker": { "$ref": "#/$defs/persistentWorker" }
+    },
+    "$defs": {
+        "host": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["cpu", "logicalProcessors", "totalMemoryBytes"],
+            "properties": {
+                "cpu": { "type": "string", "minLength": 1 },
+                "logicalProcessors": { "type": "integer", "minimum": 1 },
+                "totalMemoryBytes": { "type": "integer", "minimum": 1 }
+            }
+        },
+        "warmNative": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "scenario",
+                "medianMs",
+                "p95Ms",
+                "budgetP95Ms",
+                "passed",
+                "acceptedStepsPerIteration",
+                "rejectedStepsPerIteration"
+            ],
+            "properties": {
+                "scenario": { "type": "string", "minLength": 1 },
+                "medianMs": { "type": "number", "minimum": 0 },
+                "p95Ms": { "type": "number", "minimum": 0 },
+                "budgetP95Ms": { "type": "number", "exclusiveMinimum": 0 },
+                "passed": { "type": "boolean" },
+                "acceptedStepsPerIteration": { "type": "integer", "minimum": 1 },
+                "rejectedStepsPerIteration": { "type": "integer", "minimum": 0 }
+            }
+        },
+        "coldProcess": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "samplesMs",
+                "medianMs",
+                "p95Ms",
+                "budgetP95Ms",
+                "passed",
+                "estimatedStartupAndSerializationMedianMs",
+                "estimatedStartupAndSerializationP95Ms"
+            ],
+            "properties": {
+                "samplesMs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "type": "number", "minimum": 0 }
+                },
+                "medianMs": { "type": "number", "minimum": 0 },
+                "p95Ms": { "type": "number", "minimum": 0 },
+                "budgetP95Ms": { "type": "number", "exclusiveMinimum": 0 },
+                "passed": { "type": "boolean" },
+                "estimatedStartupAndSerializationMedianMs": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "estimatedStartupAndSerializationP95Ms": {
+                    "type": "number",
+                    "minimum": 0
+                }
+            }
+        },
+        "persistentWorker": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["decision", "reconsiderationOverheadMs", "rationale"],
+            "properties": {
+                "decision": { "type": "string", "minLength": 1 },
+                "reconsiderationOverheadMs": { "type": "number", "minimum": 0 },
+                "rationale": { "type": "string", "minLength": 1 }
+            }
+        }
+    }
+}

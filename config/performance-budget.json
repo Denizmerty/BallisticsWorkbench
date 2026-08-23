@@ -1,0 +1,9 @@
+{
+    "schemaVersion": 1,
+    "scenario": "nine-loads-2000m-full-calculation",
+    "warmNativeP95Ms": 1750,
+    "coldProcessP95Ms": 2000,
+    "persistentWorkerReconsiderationOverheadMs": 250,
+    "minimumColdSamples": 3,
+    "policy": "The complete maximum-range nine-load request, including native MPBR, zeroing, event analysis, drag diagnostics, response serialization, and process startup, should complete within two seconds at p95 on supported CI runners. Keep the cancellable per-request process while measured process-startup and serialization overhead remains below 250 ms. Reconsider a persistent NDJSON worker after two representative release baselines exceed that overhead threshold."
+}

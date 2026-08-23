@@ -13,6 +13,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  supply-chain:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify synchronized release identities
+        run: npm run release:verify-version
+
+      - name: Audit production and development dependencies
+        run: npm audit --audit-level=high
+
+      - name: Generate CycloneDX SBOM and license inventory
+        run: |
+          generated_at="$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')"
+          npm run release:supply-chain -- \
+            --output build/supply-chain \
+            --commit "${GITHUB_SHA}" \
+            --generated-at "${generated_at}"
+
+      - name: Upload supply-chain reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: supply-chain
+          path: build/supply-chain/*
+          if-no-files-found: error
+
   linux:
     runs-on: ubuntu-latest
 
@@ -26,19 +63,62 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Install JavaScript and validation dependencies
+        run: npm ci --no-audit --no-fund
+
       - name: Build and test the native core (GCC)
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build
-          ctest --test-dir build --output-on-failure
+          node scripts/build/native-build.mjs --preset linux-gcc --fresh
+          ./build/ballistics_benchmarks --iterations 3 --output build/validation/benchmark.json
+          npm run performance:assess -- \
+            --benchmark build/validation/benchmark.json \
+            --engine build/stage/bin/ballistics_cli \
+            --output build/validation/interaction-performance.json \
+            --iterations 3
+          npm run performance:trend -- \
+            --benchmark build/validation/benchmark.json \
+            --history benchmarks/history.json \
+            --output build/validation/benchmark-trend.json \
+            --markdown build/validation/benchmark-trend.md
 
-      - name: Install desktop dependencies
-        run: npm ci --no-audit --no-fund
+      - name: Validate source-controlled model evidence
+        run: node validation/validate-artifacts.mjs
+
+      - name: Generate aggregate validation summary
+        run: |
+          npm run validation:summary
+          npm run validation:summary:check
+
+      - name: Upload GCC numerical and benchmark reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-linux-gcc
+          path: build/validation/*
+          if-no-files-found: error
 
       - name: Type-check, unit-test, and build the renderer
         run: |
           npm test
           npm run build:web
+
+      - name: Build and smoke-test Linux packages
+        run: |
+          npm run package:linux
+          outputs/installer/linux-unpacked/ballistics-workbench --smoke-test --no-sandbox
+          xvfb-run --auto-servernum node scripts/e2e/packaged-ui-smoke.mjs \
+            --executable outputs/installer/linux-unpacked/ballistics-workbench \
+            --output outputs/ui-smoke/linux \
+            --disable-sandbox
+
+      - name: Upload Linux packages and UI report
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-linux-x64
+          path: |
+            outputs/installer/*.AppImage
+            outputs/installer/*.tar.gz
+            outputs/ui-smoke/linux/*
+          if-no-files-found: error
 
   windows:
     runs-on: windows-latest
@@ -62,14 +142,41 @@ jobs:
       - name: Build and test native targets
         run: .\scripts\build.cmd
 
-      - name: Run web unit tests
-        run: npm test
+      - name: Run native static analysis
+        run: npm run lint:native -- --build-directory build
 
-      - name: Stage the native engine for packaging
+      - name: Generate MSVC benchmark report
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path x64\Release | Out-Null
-          Copy-Item build\ballistics_cli.exe x64\Release\ballistics_cli.exe -Force
+          build\ballistics_benchmarks.exe --iterations 3 --output build\validation\benchmark.json
+          npm run performance:assess -- `
+            --benchmark build/validation/benchmark.json `
+            --engine build/stage/bin/ballistics_cli.exe `
+            --output build/validation/interaction-performance.json `
+            --iterations 3
+          npm run performance:trend -- `
+            --benchmark build/validation/benchmark.json `
+            --history benchmarks/history.json `
+            --output build/validation/benchmark-trend.json `
+            --markdown build/validation/benchmark-trend.md
+
+      - name: Validate source-controlled model evidence
+        run: npm run validate:artifacts
+
+      - name: Generate aggregate validation summary
+        run: |
+          npm run validation:summary
+          npm run validation:summary:check
+
+      - name: Upload MSVC numerical and benchmark reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-windows-msvc
+          path: build/validation/*
+          if-no-files-found: error
+
+      - name: Run web unit tests
+        run: npm test
 
       - name: Build the Windows installer
         run: npm run package:win
@@ -81,6 +188,9 @@ jobs:
           $result = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -Wait -PassThru
           Write-Host "Smoke test exit code: $($result.ExitCode)"
           if ($result.ExitCode -ne 0) { exit $result.ExitCode }
+
+      - name: Exercise packaged UI and CSV export on Windows
+        run: npm run test:e2e:win
 
       - name: Upload the Windows installer
         uses: actions/upload-artifact@v4
@@ -102,21 +212,44 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Install JavaScript and validation dependencies
+        run: npm ci --no-audit --no-fund
+
       - name: Build and test the native core (Clang, universal)
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-          cmake --build build
-          ctest --test-dir build --output-on-failure
+          node scripts/build/native-build.mjs --preset macos-universal --fresh
+          ./build/ballistics_benchmarks --iterations 3 --output build/validation/benchmark.json
+          npm run performance:assess -- \
+            --benchmark build/validation/benchmark.json \
+            --engine build/stage/bin/ballistics_cli \
+            --output build/validation/interaction-performance.json \
+            --iterations 3
+          npm run performance:trend -- \
+            --benchmark build/validation/benchmark.json \
+            --history benchmarks/history.json \
+            --output build/validation/benchmark-trend.json \
+            --markdown build/validation/benchmark-trend.md
           echo "ballistics_cli architectures: $(lipo -archs build/ballistics_cli)"
           lipo -archs build/ballistics_cli | grep -q x86_64
           lipo -archs build/ballistics_cli | grep -q arm64
 
-      - name: Ad-hoc sign the native CLI
-        run: codesign --force --sign - build/ballistics_cli
+      - name: Validate source-controlled model evidence
+        run: node validation/validate-artifacts.mjs
 
-      - name: Install desktop dependencies
-        run: npm ci --no-audit --no-fund
+      - name: Generate aggregate validation summary
+        run: |
+          npm run validation:summary
+          npm run validation:summary:check
+
+      - name: Upload Clang numerical and benchmark reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-macos-clang
+          path: build/validation/*
+          if-no-files-found: error
+
+      - name: Ad-hoc sign the native CLI
+        run: codesign --force --sign - build/stage/bin/ballistics_cli
 
       - name: Run web unit tests
         run: npm test
@@ -128,7 +261,7 @@ jobs:
 
       - name: Build the macOS disk image
         env:
-          # Free ad-hoc signing only; no Apple Developer certificate is used.
+          # Free ad-hoc signing only. No Apple Developer certificate is used.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npm run package:mac
 
@@ -150,6 +283,9 @@ jobs:
           app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
           echo "Launching $app --smoke-test"
           "$app/Contents/MacOS/Ballistics Workbench" --smoke-test
+          node scripts/e2e/packaged-ui-smoke.mjs \
+            --executable "$app/Contents/MacOS/Ballistics Workbench" \
+            --output outputs/ui-smoke/macos
 
       - name: Upload the macOS disk image
         uses: actions/upload-artifact@v4
@@ -157,3 +293,45 @@ jobs:
           name: macos-dmg
           path: outputs/installer/*.dmg
           if-no-files-found: error
+
+  sanitizers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install lockfile-pinned dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build and test with Clang ASan and UBSan
+        env:
+          ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1:check_initialization_order=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: node scripts/build/native-build.mjs --preset linux-sanitizers --fresh --skip-install
+
+      - name: Coverage-guide the protocol parser
+        env:
+          ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: >-
+          npm run fuzz:protocol --
+          --executable build/sanitizers/Ballistics.Protocol.Fuzz
+          --corpus tests/Ballistics.Protocol.Fuzz/corpus
+          --dictionary tests/Ballistics.Protocol.Fuzz/protocol.dict
+          --artifacts build/fuzz-artifacts
+          --seconds 60
+
+      - name: Retain and minimize protocol-fuzzer failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: protocol-fuzzer-failures
+          path: build/fuzz-artifacts/*
+          if-no-files-found: ignore

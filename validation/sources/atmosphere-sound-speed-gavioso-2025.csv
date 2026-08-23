@@ -1,0 +1,5 @@
+temperature_c,station_pressure_hpa,relative_humidity_percent,co2_mole_fraction,acoustic_frequency_hz,speed_of_sound_mps,standard_uncertainty_mps
+0.00,1013.25,40.00,0.000368,0,331.5682,0.0088
+20.00,1013.25,60.00,0.000368,0,344.0945,0.0082
+30.00,1013.25,80.00,0.000368,0,350.9820,0.0098
+50.00,1013.25,80.00,0.000368,10000,366.0778,0.0181
