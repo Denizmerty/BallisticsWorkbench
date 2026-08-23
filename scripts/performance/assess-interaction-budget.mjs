@@ -42,6 +42,28 @@ export function percentile(values, fraction) {
     return sorted[Math.max(0, Math.min(index, sorted.length - 1))];
 }
 
+export function selectPerformanceBudget(budget, platform, architecture) {
+    const key = `${platform}-${architecture}`;
+    const override = budget?.platformOverrides?.[key];
+    if (override === undefined) return budget;
+    if (
+        override === null ||
+        typeof override !== 'object' ||
+        Array.isArray(override) ||
+        !Number.isFinite(override.warmNativeP95Ms) ||
+        override.warmNativeP95Ms <= 0 ||
+        !Number.isFinite(override.coldProcessP95Ms) ||
+        override.coldProcessP95Ms <= 0
+    ) {
+        throw new Error(`Performance budget override ${key} is invalid.`);
+    }
+    return {
+        ...budget,
+        warmNativeP95Ms: override.warmNativeP95Ms,
+        coldProcessP95Ms: override.coldProcessP95Ms,
+    };
+}
+
 export function assessInteractionBudget(benchmark, coldDurationsMs, budget) {
     if (benchmark?.schemaVersion !== 1 || !Array.isArray(benchmark.benchmarks)) {
         throw new Error('Native benchmark report has an unsupported structure.');
@@ -163,7 +185,8 @@ async function main() {
     for (let index = 0; index < options.iterations; index += 1) {
         coldDurationsMs.push(await runEngine(options.engine, fixture));
     }
-    const assessment = assessInteractionBudget(benchmark, coldDurationsMs, budget);
+    const selectedBudget = selectPerformanceBudget(budget, process.platform, process.arch);
+    const assessment = assessInteractionBudget(benchmark, coldDurationsMs, selectedBudget);
     const report = {
         schemaVersion: 1,
         engineVersion: benchmark.engineVersion,
@@ -175,7 +198,7 @@ async function main() {
             logicalProcessors: os.cpus().length,
             totalMemoryBytes: os.totalmem(),
         },
-        policy: budget.policy,
+        policy: selectedBudget.policy,
         ...assessment,
     };
     await writeFile(options.output, `${JSON.stringify(report, null, 2)}\n`, 'utf8');

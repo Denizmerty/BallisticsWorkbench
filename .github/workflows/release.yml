@@ -427,7 +427,8 @@ jobs:
           npm test
           npm run format:check
           npm run package:linux
-          outputs/installer/linux-unpacked/ballistics-workbench --smoke-test --no-sandbox
+          xvfb-run --auto-servernum \
+            outputs/installer/linux-unpacked/ballistics-workbench --smoke-test --no-sandbox
           xvfb-run --auto-servernum node scripts/e2e/packaged-ui-smoke.mjs \
             --executable outputs/installer/linux-unpacked/ballistics-workbench \
             --output outputs/ui-smoke/linux \

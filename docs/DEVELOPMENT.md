@@ -204,7 +204,7 @@ full-calculation case covers all nine loads at 2,000 m including MPBR, zeroing, 
 drag diagnostics. The recorded counts expose the cost of the 0.25 m event-analysis grid and confirm
 that each trajectory is reduced to roughly 500 samples at the process boundary. The
 cross-platform `performance:assess` command adds CPU/memory identity, measures real cold-process
-request/serialization latency, enforces the checked-in 2.5-second p95 interaction budget, and
+request/serialization latency, enforces the checked-in host-class p95 interaction budget, and
 records whether process overhead justifies a persistent worker. CI uploads both reports.
 
 Renderer logic that does not depend on the DOM is covered by a Vitest suite under

@@ -1,9 +1,15 @@
 {
     "schemaVersion": 1,
     "scenario": "nine-loads-2000m-full-calculation",
-    "warmNativeP95Ms": 2500,
-    "coldProcessP95Ms": 2500,
+    "warmNativeP95Ms": 2000,
+    "coldProcessP95Ms": 2000,
+    "platformOverrides": {
+        "darwin-arm64": {
+            "warmNativeP95Ms": 3500,
+            "coldProcessP95Ms": 3500
+        }
+    },
     "persistentWorkerReconsiderationOverheadMs": 250,
     "minimumColdSamples": 3,
-    "policy": "The complete maximum-range nine-load request, including native MPBR, zeroing, event analysis, drag diagnostics, response serialization, and process startup, should complete within 2.5 seconds at p95 on supported CI runners. Keep the cancellable per-request process while measured process-startup and serialization overhead remains below 250 ms. Reconsider a persistent NDJSON worker after two representative release baselines exceed that overhead threshold."
+    "policy": "The complete maximum-range nine-load request, including native MPBR, zeroing, event analysis, drag diagnostics, response serialization, and process startup, should complete within two seconds at p95 on the default CI host class. The Apple arm64 hosted runner uses a 3.5-second budget based on its measured baseline. Keep the cancellable per-request process while measured process-startup and serialization overhead remains below 250 ms. Reconsider a persistent NDJSON worker after two representative release baselines exceed that overhead threshold."
 }

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { assessInteractionBudget, percentile } from './assess-interaction-budget.mjs';
+import {
+    assessInteractionBudget,
+    percentile,
+    selectPerformanceBudget,
+} from './assess-interaction-budget.mjs';
 
 const benchmark = (p95Ms = 50) => ({
     schemaVersion: 1,
@@ -28,6 +32,22 @@ describe('interaction performance assessment', () => {
     it('uses nearest-rank percentiles', () => {
         expect(percentile([5, 1, 4, 2, 3], 0.5)).toBe(3);
         expect(percentile([5, 1, 4, 2, 3], 0.95)).toBe(5);
+    });
+
+    it('selects the budget registered for the current host class', () => {
+        const configured = {
+            ...budget,
+            platformOverrides: {
+                'darwin-arm64': {
+                    warmNativeP95Ms: 3500,
+                    coldProcessP95Ms: 3500,
+                },
+            },
+        };
+        const selected = selectPerformanceBudget(configured, 'darwin', 'arm64');
+        expect(selected.warmNativeP95Ms).toBe(3500);
+        expect(selected.coldProcessP95Ms).toBe(3500);
+        expect(budget.warmNativeP95Ms).toBe(1750);
     });
 
     it('retains per-request processes while both budgets and the worker threshold pass', () => {
