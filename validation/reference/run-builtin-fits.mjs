@@ -241,19 +241,22 @@ function markdownFromReport(report) {
         `Engine ${report.engineVersion}. Model ${report.modelVersion}. Evidence level ` +
             `\`${report.evidenceLevel}\`.`,
         '',
-        '| Built-in load | Inputs | Residual dof | Implemented BC | Re-fitted BC | Absolute difference | Calibration RMSE | Status |',
-        '| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |',
+        '| Built-in load | Inputs | Residual dof | Implemented BC | Allowed BC difference | Fit status | Result |',
+        '| --- | ---: | ---: | ---: | ---: | --- | --- |',
     ];
     for (const fit of report.fits) {
         lines.push(
             `| \`${fit.loadId}\` | ${fit.calibrationCount} | ${fit.residualDegreesOfFreedom} | ` +
                 `${formatNumber(fit.implementedBallisticCoefficient, 9)} | ` +
-                `${formatNumber(fit.fittedBallisticCoefficient, 9)} | ` +
-                `${formatNumber(fit.coefficientResidualAbsolute, 9)} | ` +
-                `${formatNumber(fit.calibrationRmseMps, 6)} m/s | \`${fit.fitStatus}\` |`,
+                `${formatNumber(fit.coefficientToleranceAbsolute, 9)} | ` +
+                `\`${fit.fitStatus}\` | ${fit.passed ? 'pass' : 'fail'} |`,
         );
     }
     lines.push(
+        '',
+        "Detailed fitted values and residuals remain in each platform's JSON report. Small",
+        'floating-point differences are expected between compilers. The pass result uses the',
+        'tolerance registered in each fit definition.',
         '',
         'All observations are calibration inputs from the same publication tables used to derive or',
         'assess the implemented coefficients. There are no physically separate holdouts, so this',

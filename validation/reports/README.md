@@ -23,8 +23,8 @@ Built-in effective-BC reports conform to `../schemas/fit-report.schema.json`. Th
 `../reference/run-builtin-fits.mjs` runner validates each source definition, invokes the real native
 JSON calibration protocol, validates the response and aggregate report, checks the fitted value
 against the implemented coefficient, and regenerates `../../docs/generated/BUILTIN_FIT_EVIDENCE.md`.
-The JSON and Markdown build artifacts remain compiler-identified CI output. Only the deterministic
-documentation rendering is checked in.
+The JSON build artifact retains compiler-specific fitted values and residuals. The stable Markdown
+summary is checked in.
 
 Atmosphere-property reports conform to `../schemas/atmosphere-report.schema.json`. They compare the
 production model with independently generated CIPM-2007 density and NACA Report 1135 viscosity

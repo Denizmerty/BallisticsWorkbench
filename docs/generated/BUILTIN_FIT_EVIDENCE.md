@@ -5,11 +5,15 @@
 
 Engine 1.0.2. Model 2026.08.11. Evidence level `calibration_only`.
 
-| Built-in load               | Inputs | Residual dof | Implemented BC | Re-fitted BC | Absolute difference | Calibration RMSE | Status                     |
-| --------------------------- | -----: | -----------: | -------------: | -----------: | ------------------: | ---------------: | -------------------------- |
-| `builtin:white-blackout-hv` |      2 |            1 |    0.054624717 |  0.054624717 |         0.000000000 |     1.862496 m/s | `converged`                |
-| `builtin:blackshock`        |      1 |            0 |    0.070967376 |  0.070967376 |         0.000000000 |     0.000000 m/s | `insufficient_information` |
-| `builtin:federal-sp-150`    |      5 |            4 |    0.312368145 |  0.312368145 |         0.000000000 |     0.060641 m/s | `converged`                |
+| Built-in load               | Inputs | Residual dof | Implemented BC | Allowed BC difference | Fit status                 | Result |
+| --------------------------- | -----: | -----------: | -------------: | --------------------: | -------------------------- | ------ |
+| `builtin:white-blackout-hv` |      2 |            1 |    0.054624717 |           0.000010000 | `converged`                | pass   |
+| `builtin:blackshock`        |      1 |            0 |    0.070967376 |           0.000002000 | `insufficient_information` | pass   |
+| `builtin:federal-sp-150`    |      5 |            4 |    0.312368145 |           0.000002000 | `converged`                | pass   |
+
+Detailed fitted values and residuals remain in each platform's JSON report. Small
+floating-point differences are expected between compilers. The pass result uses the
+tolerance registered in each fit definition.
 
 All observations are calibration inputs from the same publication tables used to derive or
 assess the implemented coefficients. There are no physically separate holdouts, so this

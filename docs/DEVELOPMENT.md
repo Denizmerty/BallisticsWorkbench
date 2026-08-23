@@ -170,9 +170,10 @@ inventory, and deterministic regeneration of both independent scenario sets.
 executes `ballistics_cli` through the versioned JSON calibration operation, validates the native
 response and aggregate fit-report schema, and fails when a reproduced coefficient leaves its
 declared tolerance. It writes `build/validation/builtin-effective-bc-fits.json` and a Markdown
-rendering, then checks the latter against `docs/generated/BUILTIN_FIT_EVIDENCE.md`. Install the
-lockfile dependencies before configuring CMake because the runner uses the repository-pinned Ajv
-and Prettier versions.
+rendering, then checks its stable summary against `docs/generated/BUILTIN_FIT_EVIDENCE.md`.
+Per-platform fitted values and residuals remain in the JSON report. Install the lockfile
+dependencies before configuring CMake because the runner uses the repository-pinned Ajv and
+Prettier versions.
 
 `Ballistics.Validation.Tests` compares the production solver with the source-controlled
 fixed-distance RK4 G7 reference and writes `build/validation/g7-independent-residuals.json`.
@@ -203,7 +204,7 @@ full-calculation case covers all nine loads at 2,000 m including MPBR, zeroing, 
 drag diagnostics. The recorded counts expose the cost of the 0.25 m event-analysis grid and confirm
 that each trajectory is reduced to roughly 500 samples at the process boundary. The
 cross-platform `performance:assess` command adds CPU/memory identity, measures real cold-process
-request/serialization latency, enforces the checked-in two-second p95 interaction budget, and
+request/serialization latency, enforces the checked-in 2.5-second p95 interaction budget, and
 records whether process overhead justifies a persistent worker. CI uploads both reports.
 
 Renderer logic that does not depend on the DOM is covered by a Vitest suite under
