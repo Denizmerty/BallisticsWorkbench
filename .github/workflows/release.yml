@@ -211,7 +211,10 @@ jobs:
     env:
       CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
       CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+      CSC_INSTALLER_LINK: ${{ secrets.MACOS_INSTALLER_CSC_LINK }}
+      CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.MACOS_INSTALLER_CSC_KEY_PASSWORD }}
       MACOS_IDENTITY: ${{ secrets.MACOS_IDENTITY }}
+      MACOS_INSTALLER_IDENTITY: ${{ secrets.MACOS_INSTALLER_IDENTITY }}
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -241,22 +244,41 @@ jobs:
 
       - name: Validate signing and notarization configuration
         run: |
-          certificate_values=("$CSC_LINK" "$CSC_KEY_PASSWORD" "$MACOS_IDENTITY")
+          application_certificate_values=("$CSC_LINK" "$CSC_KEY_PASSWORD" "$MACOS_IDENTITY")
+          installer_certificate_values=(
+            "$CSC_INSTALLER_LINK"
+            "$CSC_INSTALLER_KEY_PASSWORD"
+            "$MACOS_INSTALLER_IDENTITY"
+          )
           apple_values=("$APPLE_ID" "$APPLE_APP_SPECIFIC_PASSWORD" "$APPLE_TEAM_ID")
-          certificate_count=0
+          application_certificate_count=0
+          installer_certificate_count=0
           apple_count=0
-          for value in "${certificate_values[@]}"; do [[ -n "$value" ]] && certificate_count=$((certificate_count + 1)); done
+          for value in "${application_certificate_values[@]}"; do
+            [[ -n "$value" ]] && application_certificate_count=$((application_certificate_count + 1))
+          done
+          for value in "${installer_certificate_values[@]}"; do
+            [[ -n "$value" ]] && installer_certificate_count=$((installer_certificate_count + 1))
+          done
           for value in "${apple_values[@]}"; do [[ -n "$value" ]] && apple_count=$((apple_count + 1)); done
-          [[ "$certificate_count" = 0 || "$certificate_count" = 3 ]] || {
+          [[ "$application_certificate_count" = 0 || "$application_certificate_count" = 3 ]] || {
             echo 'MACOS_CSC_LINK, MACOS_CSC_KEY_PASSWORD, and MACOS_IDENTITY must be configured together.' >&2
+            exit 1
+          }
+          [[ "$installer_certificate_count" = 0 || "$installer_certificate_count" = 3 ]] || {
+            echo 'MACOS_INSTALLER_CSC_LINK, MACOS_INSTALLER_CSC_KEY_PASSWORD, and MACOS_INSTALLER_IDENTITY must be configured together.' >&2
+            exit 1
+          }
+          [[ "$application_certificate_count" = "$installer_certificate_count" ]] || {
+            echo 'The application and installer certificate groups must be configured together.' >&2
             exit 1
           }
           [[ "$apple_count" = 0 || "$apple_count" = 3 ]] || {
             echo 'APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, and APPLE_TEAM_ID must be configured together.' >&2
             exit 1
           }
-          [[ "$apple_count" = 0 || "$certificate_count" = 3 ]] || {
-            echo 'Notarization credentials require a Developer ID signing certificate.' >&2
+          [[ "$apple_count" = 0 || "$application_certificate_count" = 3 ]] || {
+            echo 'Notarization credentials require Developer ID Application and Installer certificates.' >&2
             exit 1
           }
 
@@ -291,18 +313,27 @@ jobs:
           brew install librsvg
           bash scripts/make-icns.sh
 
-      - name: Build universal macOS disk image
+      - name: Build universal macOS installers
         run: |
           npm run format:check
           npm run native:verify-stage -- --platform macos
           if [[ -n "$CSC_LINK" ]]; then
             codesign --force --options runtime --timestamp --sign "$MACOS_IDENTITY" build/stage/bin/ballistics_cli
             npm run build
-            npx --no-install electron-builder --mac --universal --publish never \
-              --config.mac.identity="$MACOS_IDENTITY"
+            npx --no-install electron-builder --mac dmg pkg --universal --publish never \
+              --config.mac.identity="$MACOS_IDENTITY" \
+              --config.mac.notarize=false \
+              --config.pkg.identity="$MACOS_INSTALLER_IDENTITY"
           else
             npm run package:mac
           fi
+
+      - name: Verify the guided installer payload
+        run: |
+          pkg="$(find outputs/installer -maxdepth 1 -name '*.pkg' -type f | head -n1)"
+          [[ -n "$pkg" ]]
+          payload="$(pkgutil --payload-files "$pkg")"
+          grep -q 'Ballistics Workbench.app/Contents/MacOS/Ballistics Workbench$' <<< "$payload"
 
       - name: Verify architecture and smoke-test packaged application
         run: |
@@ -325,21 +356,26 @@ jobs:
         run: |
           app="$(find outputs/installer -maxdepth 3 -name '*.app' -type d | head -n1)"
           dmg="$(find outputs/installer -maxdepth 1 -name '*.dmg' -type f | head -n1)"
-          [[ -n "$app" && -n "$dmg" ]]
+          pkg="$(find outputs/installer -maxdepth 1 -name '*.pkg' -type f | head -n1)"
+          [[ -n "$app" && -n "$dmg" && -n "$pkg" ]]
           signed=false
           notarized=false
           if [[ -n "$CSC_LINK" ]]; then
             codesign --verify --deep --strict --verbose=2 "$app"
+            pkgutil --check-signature "$pkg"
             signed=true
           fi
           if [[ -n "$APPLE_ID" ]]; then
-            xcrun notarytool submit "$dmg" \
-              --apple-id "$APPLE_ID" \
-              --password "$APPLE_APP_SPECIFIC_PASSWORD" \
-              --team-id "$APPLE_TEAM_ID" \
-              --wait
-            xcrun stapler staple "$dmg"
-            xcrun stapler validate "$dmg"
+            for installer in "$dmg" "$pkg"; do
+              xcrun notarytool submit "$installer" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" \
+                --wait
+              xcrun stapler staple "$installer"
+              xcrun stapler validate "$installer"
+            done
+            spctl --assess --type install --verbose=4 "$pkg"
             notarized=true
           fi
           echo "signed=$signed" >> "$GITHUB_OUTPUT"
@@ -372,6 +408,7 @@ jobs:
           name: release-macos
           path: |
             outputs/installer/*.dmg
+            outputs/installer/*.pkg
             outputs/release-fragments/macos-toolchain.json
           if-no-files-found: error
           retention-days: 14

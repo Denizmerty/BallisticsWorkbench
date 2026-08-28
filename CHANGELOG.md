@@ -4,6 +4,13 @@ All notable changes to Ballistics Workbench are recorded in this file.
 
 ## Unreleased
 
+## 1.0.3 - 2026-08-28
+
+- Added a universal macOS PKG installer for Apple Silicon and Intel Macs. The guided installer
+  places Ballistics Workbench in `/Applications`; CI publishes the PKG and DMG together, while the
+  release pipeline validates the installer payload and supports Developer ID signing and Apple
+  notarization when credentials are configured.
+
 - Added protocol-v2 advanced shot scenarios with inclined targets, optional ICAO lapse behavior,
   WGS84 local gravity, Coriolis acceleration, height/downrange wind layers, and source-labelled
   temperature/muzzle-velocity profiles. The native model, renderer, profiles, CSV export, batch

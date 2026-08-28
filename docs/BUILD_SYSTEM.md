@@ -218,6 +218,10 @@ bash scripts/make-icns.sh
 CSC_IDENTITY_AUTO_DISCOVERY=false npm run package:mac
 ```
 
+The macOS command creates both a universal DMG and a guided PKG installer that installs the app into
+`/Applications`. The tag-driven release workflow can sign the app and PKG with their respective
+Developer ID certificates and notarize both deliverables.
+
 Linux:
 
 ```bash

@@ -127,7 +127,11 @@ describe('release asset generation', () => {
         );
         await writeFile(
             join(artifacts, 'macos', `Ballistics-Workbench-${version}-universal.dmg`),
-            'macos',
+            'macos-dmg',
+        );
+        await writeFile(
+            join(artifacts, 'macos', `Ballistics-Workbench-${version}-universal-Installer.pkg`),
+            'macos-pkg',
         );
         await writeFile(
             join(artifacts, 'linux', `Ballistics-Workbench-${version}-linux-x64.AppImage`),
@@ -146,8 +150,13 @@ describe('release asset generation', () => {
             sbom: structuredClone(sbom),
             toolchains,
         });
-        expect(manifest.artifacts).toHaveLength(3);
-        expect(manifest.artifacts.find((item) => item.platform === 'macos')).toMatchObject({
+        expect(manifest.artifacts).toHaveLength(4);
+        expect(manifest.artifacts.find((item) => item.kind === 'macos-disk-image')).toMatchObject({
+            signed: true,
+            notarized: true,
+        });
+        expect(manifest.artifacts.find((item) => item.kind === 'macos-installer')).toMatchObject({
+            platform: 'macos',
             signed: true,
             notarized: true,
         });
@@ -170,6 +179,7 @@ describe('release asset generation', () => {
 
         const sums = await readFile(join(output, 'SHA256SUMS.txt'), 'utf8');
         expect(sums).toContain(`Ballistics-Workbench-${version}-Setup.exe`);
+        expect(sums).toContain(`Ballistics-Workbench-${version}-universal-Installer.pkg`);
         expect(sums).toContain(`ballistics-workbench-${version}.cdx.json`);
         expect(sums).not.toContain('SHA256SUMS.txt');
     });

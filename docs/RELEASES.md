@@ -3,7 +3,7 @@
 Ballistics Workbench releases are assembled by `.github/workflows/release.yml` from an immutable
 version tag. The workflow builds Windows, universal macOS, and x64 Linux packages independently,
 exercises the packaged application, records each platform toolchain, and assembles one checksummed
-release bundle.
+release bundle. macOS releases contain both a guided PKG installer and a drag-to-Applications DMG.
 
 This workflow improves traceability. It does not certify the application or its scientific models.
 Numerical evidence and remaining model limitations are documented in `MODEL_AND_VALIDATION.md`.
@@ -26,7 +26,7 @@ among:
 - The native JSON protocol version
 - The profile-interchange schema version
 
-`npm run release:verify-version -- --tag v1.0.2` performs the same check locally. A mismatch stops
+`npm run release:verify-version -- --tag v1.0.3` performs the same check locally. A mismatch stops
 the release before artifact creation.
 
 For a legitimate version/model/protocol change, edit the authority and run
@@ -60,11 +60,11 @@ The macOS job, using the canonical `macos-universal` preset and CMake install st
 
 1. builds and tests a universal `arm64`/`x86_64` native engine
 2. runs renderer, Electron-boundary, and release-integrity tests
-3. creates the ICNS icon and universal disk image
+3. creates the ICNS icon, universal disk image, and guided PKG installer for `/Applications`
 4. checks both architectures in the application and bundled engine
-5. runs the packaged numerical and UI/CSV smoke tests
-6. verifies Developer ID signing and submits the disk image to Apple notarization when credentials
-   were supplied
+5. validates the PKG payload and runs the packaged numerical and UI/CSV smoke tests
+6. verifies Developer ID Application and Installer signing and submits both installers to Apple
+   notarization when credentials were supplied
 7. records the toolchain, signing, and notarization state in `macos-toolchain.json`.
 
 ### Linux
@@ -105,31 +105,35 @@ Both values must be present together. If configured, the installer must return a
 
 ### macOS Developer ID and notarization
 
-| Secret                        | Purpose                                       |
-| ----------------------------- | --------------------------------------------- |
-| `MACOS_CSC_LINK`              | Developer ID certificate for electron-builder |
-| `MACOS_CSC_KEY_PASSWORD`      | Certificate password                          |
-| `MACOS_IDENTITY`              | Exact Developer ID Application identity       |
-| `APPLE_ID`                    | Apple account used by `notarytool`            |
-| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password used by `notarytool`    |
-| `APPLE_TEAM_ID`               | Apple Developer team identifier               |
+| Secret                             | Purpose                                     |
+| ---------------------------------- | ------------------------------------------- |
+| `MACOS_CSC_LINK`                   | Developer ID Application certificate        |
+| `MACOS_CSC_KEY_PASSWORD`           | Application-certificate password            |
+| `MACOS_IDENTITY`                   | Developer ID Application identity qualifier |
+| `MACOS_INSTALLER_CSC_LINK`         | Developer ID Installer certificate          |
+| `MACOS_INSTALLER_CSC_KEY_PASSWORD` | Installer-certificate password              |
+| `MACOS_INSTALLER_IDENTITY`         | Developer ID Installer identity qualifier   |
+| `APPLE_ID`                         | Apple account used by `notarytool`          |
+| `APPLE_APP_SPECIFIC_PASSWORD`      | App-specific password used by `notarytool`  |
+| `APPLE_TEAM_ID`                    | Apple Developer team identifier             |
 
-The three certificate values are one group and the three notarization values are another. Partial
-groups fail immediately. Notarization credentials cannot be enabled without the certificate group.
-The workflow waits for Apple's result, staples the ticket to the disk image, and validates the
-staple before publication.
+The three application-certificate values, three installer-certificate values, and three
+notarization values are separate complete groups. Partial groups fail immediately. Application and
+installer certificate groups must be enabled together, and notarization cannot be enabled without
+both. The workflow waits for Apple's result, staples tickets to both installers, and validates the
+staples before publication.
 
 ## Published integrity artifacts
 
 Every release includes the application packages and the following support files:
 
-| File                                                              | Purpose                                                                 |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `SHA256SUMS.txt`                                                  | SHA-256 for every package and support file except the checksum file     |
-| `release-manifest.json`                                           | Source, identity, model-data, toolchain, artifact, and signing metadata |
-| `ballistics-workbench-<version>.cdx.json`                         | CycloneDX SBOM generated from the committed npm lockfile                |
-| `THIRD-PARTY-LICENSES.json`                                       | Sorted dependency/license inventory derived from the SBOM               |
-| Windows `.exe`, universal macOS `.dmg`, Linux AppImage and tar.gz | Platform packages                                                       |
+| File                                                                         | Purpose                                                                 |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `SHA256SUMS.txt`                                                             | SHA-256 for every package and support file except the checksum file     |
+| `release-manifest.json`                                                      | Source, identity, model-data, toolchain, artifact, and signing metadata |
+| `ballistics-workbench-<version>.cdx.json`                                    | CycloneDX SBOM generated from the committed npm lockfile                |
+| `THIRD-PARTY-LICENSES.json`                                                  | Sorted dependency/license inventory derived from the SBOM               |
+| Windows `.exe`, universal macOS `.pkg` and `.dmg`, Linux AppImage and tar.gz | Platform packages                                                       |
 
 The release-manifest contract is
 `release/release-manifest.schema.json` (JSON Schema Draft 2020-12). The manifest records:
@@ -168,8 +172,8 @@ npm run release:verify-assets -- --directory outputs/release
 Consumers on Windows can verify one downloaded installer directly:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 '.\Ballistics-Workbench-1.0.2-Setup.exe'
-Get-AuthenticodeSignature '.\Ballistics-Workbench-1.0.2-Setup.exe'
+Get-FileHash -Algorithm SHA256 '.\Ballistics-Workbench-1.0.3-Setup.exe'
+Get-AuthenticodeSignature '.\Ballistics-Workbench-1.0.3-Setup.exe'
 ```
 
 On macOS or Linux, verify all downloaded release files from a directory containing
@@ -183,8 +187,15 @@ macOS users can also inspect the notarization ticket and application signature a
 mounting the disk image:
 
 ```bash
-xcrun stapler validate Ballistics-Workbench-1.0.2-universal.dmg
+xcrun stapler validate Ballistics-Workbench-1.0.3-universal.dmg
 codesign --verify --deep --strict --verbose=2 '/Volumes/Ballistics Workbench/Ballistics Workbench.app'
+```
+
+Verify the guided installer directly with:
+
+```bash
+xcrun stapler validate Ballistics-Workbench-1.0.3-universal-Installer.pkg
+pkgutil --check-signature Ballistics-Workbench-1.0.3-universal-Installer.pkg
 ```
 
 ## Dependency maintenance

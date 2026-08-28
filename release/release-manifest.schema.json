@@ -91,6 +91,7 @@
                         "enum": [
                             "windows-installer",
                             "macos-disk-image",
+                            "macos-installer",
                             "linux-package",
                             "archive"
                         ]

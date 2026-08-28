@@ -117,7 +117,7 @@ npm run atmosphere:check     Reject generated atmosphere-conversion drift
 npm run native:build  Native configure/build/test/install for the current platform
 npm run start         Run the most recent production build
 npm run package:win   Build the Windows NSIS installer
-npm run package:mac   Build the macOS disk image (runs on macOS)
+npm run package:mac   Build the macOS PKG installer and DMG (runs on macOS)
 npm run package:linux Build Linux AppImage and tar.gz packages (runs on Linux)
 npm test              Run the renderer unit tests (Vitest)
 npm run format        Apply C++ and web-source formatting
@@ -277,17 +277,18 @@ warnings as errors, AddressSanitizer, and UndefinedBehaviorSanitizer, then runs 
 suite under strict runtime options.
 
 A macOS job builds and tests the core under Clang as a universal binary (`arm64` and `x86_64`),
-ad-hoc signs the native CLI, generates the app icon, and produces a universal `.dmg` disk image that
-runs on both Apple Silicon and Intel Macs. It verifies with `lipo` that the packaged app executable
-and the bundled engine both contain the two architectures, then launches the packaged application
-with `--smoke-test` to confirm the bundled C++ engine starts and returns every built-in load on
-macOS, and uploads the disk image as a build artifact. The runner is Apple Silicon, so the smoke
-test exercises the `arm64` slice. The `lipo` check guards the `x86_64` (Intel) slice, which the
-runner cannot execute. The macOS build is ad-hoc signed and has no notarization:
+ad-hoc signs the native CLI, generates the app icon, and produces a universal `.dmg` plus a guided
+`.pkg` installer for `/Applications`. It validates the PKG payload and verifies with `lipo` that the
+packaged app executable and bundled engine both contain the two architectures, then launches the
+packaged application with `--smoke-test` to confirm the bundled C++ engine starts and returns every
+built-in load on macOS. Both installers are uploaded as one build artifact. The runner is Apple
+Silicon, so the smoke test exercises the `arm64` slice. The `lipo` check guards the `x86_64` (Intel)
+slice, which the runner cannot execute. The ordinary CI build is ad-hoc signed and has no
+notarization:
 `mac.identity` is `null` and `CSC_IDENTITY_AUTO_DISCOVERY` is `false`, so no Apple Developer
-certificate is involved in ordinary CI. Ad-hoc signing is free and is the minimum required for the app to launch on
-Apple Silicon. Recipients clear Gatekeeper once on first launch (right-click → Open, or by removing
-the quarantine attribute).
+certificate is involved in ordinary CI. Ad-hoc signing is free and is the minimum required for the
+app to launch on Apple Silicon. These unsigned/unnotarized test installers are not intended as the
+novice-facing release package.
 
 `.github/workflows/release.yml` is a separate immutable-tag delivery path. It repeats the relevant
 native, renderer, package, architecture, and smoke gates. It applies Authenticode and Developer ID/
@@ -310,8 +311,8 @@ credential contract, manifest fields, verification commands, and consumer-facing
 8. Run `npm run build`.
 9. Run `npm run package:win`.
 10. Run the packaged executable with `--smoke-test`, then run `npm run test:e2e:win`.
-11. Download the `macos-dmg` artifact from the `macos` CI job for the same commit. The job has
-    already smoke-tested it on macOS.
+11. Download the `macos-installers` artifact from the `macos` CI job for the same commit. The job
+    has already smoke-tested the packaged app and checked the PKG payload on macOS.
 12. Download and inspect the GCC, MSVC, and Clang validation artifacts.
 13. Run `npm run release:verify-version -- --tag v<version>`.
 14. Tag the reviewed commit as `v<version>` and let the release workflow assemble and publish the

@@ -4,7 +4,15 @@ import { copyFile, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/pro
 import { basename, extname, join, relative, resolve, sep } from 'node:path';
 import { releaseIdentity, synchronizeProductMetadata } from '../product/product-metadata.mjs';
 
-const distributableExtensions = new Set(['.appimage', '.dmg', '.exe', '.gz', '.msi', '.zip']);
+const distributableExtensions = new Set([
+    '.appimage',
+    '.dmg',
+    '.exe',
+    '.gz',
+    '.msi',
+    '.pkg',
+    '.zip',
+]);
 const sha256Pattern = /^[0-9a-f]{64}$/;
 const fullCommitPattern = /^[0-9a-f]{40}$/;
 
@@ -93,6 +101,7 @@ function artifactClassification(file) {
         return { kind: 'windows-installer', platform: 'windows' };
     }
     if (extension === '.dmg') return { kind: 'macos-disk-image', platform: 'macos' };
+    if (extension === '.pkg') return { kind: 'macos-installer', platform: 'macos' };
     if (extension === '.appimage' || path.includes('linux')) {
         return { kind: 'linux-package', platform: 'linux' };
     }

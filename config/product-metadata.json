@@ -1,6 +1,6 @@
 {
     "$schema": "./product-metadata.schema.json",
-    "applicationVersion": "1.0.2",
+    "applicationVersion": "1.0.3",
     "modelVersion": "2026.08.11",
     "protocolVersion": 2,
     "profileInterchangeVersion": 4,

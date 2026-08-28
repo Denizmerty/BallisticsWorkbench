@@ -68,25 +68,23 @@ The six built-in loads are:
 - macOS 12 Monterey or later (Apple Silicon or Intel), or
 - a current x64 Linux distribution capable of running AppImage packages
 
-Windows NSIS, universal macOS DMG, Linux AppImage, and Linux tar.gz packages are produced from their
-canonical CMake stages. Release jobs build and test each package on its host operating system.
+Windows NSIS, universal macOS PKG and DMG, Linux AppImage, and Linux tar.gz packages are produced
+from their canonical CMake stages. Release jobs build and test each package on its host operating
+system.
 
-#### macOS: first launch
+#### Install on macOS
 
-The macOS build is a **universal binary** (Apple Silicon and Intel) that is **ad-hoc signed but not
-notarized**, because notarization requires a paid Apple Developer membership. The app is not tied to
-any single Mac and runs on any recent Mac, but because it is unnotarized, macOS Gatekeeper stops the
-very first launch. Clear it once, either way:
+The easiest option is the universal `Ballistics-Workbench-<version>-universal-Installer.pkg`, which
+supports both Apple Silicon and Intel Macs:
 
-- **Right-click** (or Control-click) `Ballistics Workbench.app` in Applications and choose **Open**,
-  then confirm **Open** in the dialog, or
-- run this in Terminal after copying the app to Applications:
+1. Double-click the downloaded `.pkg` file.
+2. Select **Continue**, then **Install**.
+3. Open **Ballistics Workbench** from Applications or Launchpad.
 
-    ```bash
-    xattr -dr com.apple.quarantine "/Applications/Ballistics Workbench.app"
-    ```
-
-After the first successful launch the app opens normally from then on.
+Signed and notarized releases open normally without a Gatekeeper workaround. Release candidates
+built without Apple Developer credentials are marked as pre-releases and are intended for testing;
+macOS may require Control-clicking the package and choosing **Open**. The `.dmg` remains available
+for users who prefer to drag the app into Applications.
 
 ### Building from source
 
@@ -158,16 +156,17 @@ Add `--run` to launch the unpacked application after a successful build:
 .\scripts\build-release.cmd --run
 ```
 
-## Create the macOS disk image
+## Create the macOS installers
 
 macOS packaging runs on a hosted macOS runner. The `macos` job in
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) compiles the
 native core with Clang as a **universal binary** (`arm64` and `x86_64`), ad-hoc signs it, builds the
-universal Electron application, produces the `.dmg`, verifies both the app and the bundled engine
-contain both architectures, runs the packaged numerical smoke test, exercises the real Chromium UI
-through load/unit/theme/status/table/profile interactions, verifies a six-load CSV export through
-preload and IPC, and uploads the disk image as a build artifact. No Apple Developer membership and
-no local Mac are required.
+universal Electron application, produces the `.dmg`, creates a guided `.pkg` installer for
+`/Applications`, verifies both the app and the bundled engine contain both architectures, runs the
+packaged numerical smoke test, exercises the real Chromium UI through
+load/unit/theme/status/table/profile interactions, verifies a six-load CSV export through preload
+and IPC, and uploads both installers as a build artifact. No Apple Developer membership and no
+local Mac are required for test builds.
 
 To build it by hand on a Mac with the Xcode command-line tools and Node.js 22:
 
@@ -180,8 +179,10 @@ bash scripts/make-icns.sh
 CSC_IDENTITY_AUTO_DISCOVERY=false npm run package:mac
 ```
 
-The disk image is written to `outputs/installer/`. The build is ad-hoc signed only. See
-[macOS: first launch](#macos-first-launch) for how recipients clear Gatekeeper on other Macs.
+The PKG installer and DMG are written to `outputs/installer/`. This local command produces test
+artifacts without Apple notarization. The tag-driven release workflow signs and notarizes both
+installers when the Apple Developer credentials described in
+[`docs/RELEASES.md`](docs/RELEASES.md) are configured.
 
 ## Create the Linux packages
 

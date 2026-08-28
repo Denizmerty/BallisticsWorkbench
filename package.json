@@ -1,6 +1,6 @@
 {
     "name": "ballistics-workbench",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Cross-platform external-ballistics calculator with a C++20 numerical core.",
     "author": "Deniz Mert Yayla <denizmerty@gmail.com>",
     "license": "GPL-3.0-or-later",
@@ -46,7 +46,7 @@
         "release:supply-chain": "node scripts/release/generate-supply-chain.mjs",
         "release:verify-assets": "node scripts/release/verify-release-assets.mjs",
         "package:win": "npm run native:verify-stage -- --platform windows && npm run build && electron-builder --win nsis --publish never",
-        "package:mac": "npm run native:verify-stage -- --platform macos && npm run build && electron-builder --mac --universal --publish never",
+        "package:mac": "npm run native:verify-stage -- --platform macos && npm run build && electron-builder --mac dmg pkg --universal --publish never",
         "package:linux": "npm run native:verify-stage -- --platform linux && npm run build && electron-builder --linux AppImage tar.gz --x64 --publish never",
         "test:e2e:packaged": "node scripts/e2e/packaged-ui-smoke.mjs",
         "test:e2e:win": "npm run test:e2e:packaged -- --executable \"outputs/installer/win-unpacked/Ballistics Workbench.exe\" --output outputs/ui-smoke/windows",
@@ -113,7 +113,10 @@
         },
         "mac": {
             "icon": "assets/icon.icns",
-            "target": "dmg",
+            "target": [
+                "dmg",
+                "pkg"
+            ],
             "category": "public.app-category.utilities",
             "artifactName": "Ballistics-Workbench-${version}-${arch}.${ext}",
             "identity": null,
@@ -122,6 +125,18 @@
                     "from": "build/stage/bin/ballistics_cli",
                     "to": "bin/ballistics_cli"
                 }
+            ]
+        },
+        "pkg": {
+            "artifactName": "Ballistics-Workbench-${version}-${arch}-Installer.${ext}",
+            "installLocation": "/Applications",
+            "allowAnywhere": false,
+            "allowCurrentUserHome": false,
+            "allowRootDirectory": true,
+            "isRelocatable": false,
+            "overwriteAction": "upgrade",
+            "mustClose": [
+                "com.ballisticsworkbench.desktop"
             ]
         },
         "linux": {

@@ -284,11 +284,18 @@ jobs:
           brew install librsvg
           bash scripts/make-icns.sh
 
-      - name: Build the macOS disk image
+      - name: Build the macOS installers
         env:
           # Free ad-hoc signing only. No Apple Developer certificate is used.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npm run package:mac
+
+      - name: Verify the guided installer payload
+        run: |
+          pkg="$(find outputs/installer -maxdepth 1 -name '*.pkg' -type f | head -n1)"
+          [[ -n "$pkg" ]]
+          payload="$(pkgutil --payload-files "$pkg")"
+          grep -q 'Ballistics Workbench.app/Contents/MacOS/Ballistics Workbench$' <<< "$payload"
 
       - name: Verify the packaged app is universal (Intel + Apple Silicon)
         run: |
@@ -312,11 +319,13 @@ jobs:
             --executable "$app/Contents/MacOS/Ballistics Workbench" \
             --output outputs/ui-smoke/macos
 
-      - name: Upload the macOS disk image
+      - name: Upload the macOS installers
         uses: actions/upload-artifact@v4
         with:
-          name: macos-dmg
-          path: outputs/installer/*.dmg
+          name: macos-installers
+          path: |
+            outputs/installer/*.dmg
+            outputs/installer/*.pkg
           if-no-files-found: error
 
   sanitizers:
