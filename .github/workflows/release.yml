@@ -553,9 +553,9 @@ jobs:
             --repository '${{ github.repository }}' \
             --ref 'refs/tags/${{ needs.verify.outputs.tag }}' \
             --generated-at '${{ needs.verify.outputs.generated_at }}' \
-            --toolchain release-input/release-windows/windows-toolchain.json \
-            --toolchain release-input/release-macos/macos-toolchain.json \
-            --toolchain release-input/release-linux/linux-toolchain.json
+            --toolchain release-input/release-windows/release-fragments/windows-toolchain.json \
+            --toolchain release-input/release-macos/release-fragments/macos-toolchain.json \
+            --toolchain release-input/release-linux/release-fragments/linux-toolchain.json
           npm run release:verify-assets -- --directory outputs/release
 
       - name: Upload final release bundle for retention
