@@ -535,7 +535,7 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Download platform release inputs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: release-*
           path: release-input
