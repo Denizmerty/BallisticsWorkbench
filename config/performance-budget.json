@@ -4,12 +4,20 @@
     "warmNativeP95Ms": 2000,
     "coldProcessP95Ms": 2000,
     "platformOverrides": {
+        "linux-x64": {
+            "warmNativeP95Ms": 2500,
+            "coldProcessP95Ms": 2500
+        },
+        "win32-x64": {
+            "warmNativeP95Ms": 2500,
+            "coldProcessP95Ms": 2500
+        },
         "darwin-arm64": {
             "warmNativeP95Ms": 3500,
             "coldProcessP95Ms": 3500
         }
     },
     "persistentWorkerReconsiderationOverheadMs": 250,
-    "minimumColdSamples": 3,
-    "policy": "The complete maximum-range nine-load request, including native MPBR, zeroing, event analysis, drag diagnostics, response serialization, and process startup, should complete within two seconds at p95 on the default CI host class. The Apple arm64 hosted runner uses a 3.5-second budget based on its measured baseline. Keep the cancellable per-request process while measured process-startup and serialization overhead remains below 250 ms. Reconsider a persistent NDJSON worker after two representative release baselines exceed that overhead threshold."
+    "minimumColdSamples": 5,
+    "policy": "The complete maximum-range nine-load request, including native MPBR, zeroing, event analysis, drag diagnostics, response serialization, and process startup, targets two seconds at p95. Shared Linux and Windows CI runners use a 2.5-second enforcement ceiling, and Apple arm64 hosted runners use 3.5 seconds, to separate sustained regressions from host contention. CI records at least five samples and retries one failed assessment. Keep the cancellable per-request process while measured process-startup and serialization overhead remains below 250 ms. Reconsider a persistent NDJSON worker after two representative release baselines exceed that overhead threshold."
 }

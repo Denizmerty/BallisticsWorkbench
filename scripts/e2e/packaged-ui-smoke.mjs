@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -82,6 +82,7 @@ async function launch(executable, output, disableSandbox) {
 
 async function main() {
     const options = parseArguments(process.argv.slice(2));
+    await rm(options.output, { recursive: true, force: true });
     await mkdir(options.output, { recursive: true });
     await launch(options.executable, options.output, options.disableSandbox);
     const report = validateUiSmokeReport(

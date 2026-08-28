@@ -9,8 +9,7 @@ type Props = {
 };
 
 type TemperatureProfileKey =
-    | 'shotgunTemperatureVelocityProfile'
-    | 'rifleTemperatureVelocityProfile';
+    'shotgunTemperatureVelocityProfile' | 'rifleTemperatureVelocityProfile';
 
 type TemperatureSourceKey = 'shotgunTemperatureVelocitySource' | 'rifleTemperatureVelocitySource';
 

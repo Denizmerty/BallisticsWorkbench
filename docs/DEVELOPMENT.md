@@ -299,25 +299,26 @@ credential contract, manifest fields, verification commands, and consumer-facing
 
 ## Release checklist
 
-1. Update the version in `package.json`, `package-lock.json`, `CMakeLists.txt`, and the native engine
-   declaration.
-2. Run `npm ci`.
-3. Run `npm run format:check`.
-4. Run `npm run validate:artifacts`.
-5. Run `npm test`.
-6. Run the appropriate canonical native preset, which builds, tests, installs, and validates the
+1. Edit the appropriate authority fields in `config/product-metadata.json`, then run
+   `npm run identity:generate`. Do not edit generated version consumers independently.
+2. Review the generated identity diff and update human-facing release notes.
+3. Run `npm ci`.
+4. Run `npm run format:check`.
+5. Run `npm run validate:artifacts`.
+6. Run `npm test`.
+7. Run the appropriate canonical native preset, which builds, tests, installs, and validates the
    runtime stage.
-7. Generate the native benchmark, run `performance:assess`, and retain both JSON reports.
-8. Run `npm run build`.
-9. Run `npm run package:win`.
-10. Run the packaged executable with `--smoke-test`, then run `npm run test:e2e:win`.
-11. Download the `macos-installers` artifact from the `macos` CI job for the same commit. The job
+8. Generate the native benchmark, run `performance:assess`, and retain both JSON reports.
+9. Run `npm run build`.
+10. Run `npm run package:win`.
+11. Run the packaged executable with `--smoke-test`, then run `npm run test:e2e:win`.
+12. Download the `macos-installers` artifact from the `macos` CI job for the same commit. The job
     has already smoke-tested the packaged app and checked the PKG payload on macOS.
-12. Download and inspect the GCC, MSVC, and Clang validation artifacts.
-13. Run `npm run release:verify-version -- --tag v<version>`.
-14. Tag the reviewed commit as `v<version>` and let the release workflow assemble and publish the
+13. Download and inspect the GCC, MSVC, and Clang validation artifacts.
+14. Run `npm run release:verify-version -- --tag v<version>`.
+15. Tag the reviewed commit as `v<version>` and let the release workflow assemble and publish the
     checksummed bundle.
-15. Verify `SHA256SUMS.txt` and inspect `release-manifest.json` for the expected source commit,
+16. Verify `SHA256SUMS.txt` and inspect `release-manifest.json` for the expected source commit,
     versions, reference-data checksums, toolchains, signing, and notarization status.
 
 Generated files, dependencies, installers, IDE state, and local settings are excluded through

@@ -26,8 +26,9 @@ among:
 - The native JSON protocol version
 - The profile-interchange schema version
 
-`npm run release:verify-version -- --tag v1.0.3` performs the same check locally. A mismatch stops
-the release before artifact creation.
+`npm run release:verify-version -- --tag v<version>` performs the same check locally after replacing
+`<version>` with the intended semantic version. A mismatch stops the release before artifact
+creation.
 
 For a legitimate version/model/protocol change, edit the authority and run
 `npm run identity:generate`. Do not edit the listed consumers independently. The complete procedure
@@ -172,8 +173,9 @@ npm run release:verify-assets -- --directory outputs/release
 Consumers on Windows can verify one downloaded installer directly:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 '.\Ballistics-Workbench-1.0.3-Setup.exe'
-Get-AuthenticodeSignature '.\Ballistics-Workbench-1.0.3-Setup.exe'
+$Version = '<version>'
+Get-FileHash -Algorithm SHA256 ".\Ballistics-Workbench-$Version-Setup.exe"
+Get-AuthenticodeSignature ".\Ballistics-Workbench-$Version-Setup.exe"
 ```
 
 On macOS or Linux, verify all downloaded release files from a directory containing
@@ -187,15 +189,17 @@ macOS users can also inspect the notarization ticket and application signature a
 mounting the disk image:
 
 ```bash
-xcrun stapler validate Ballistics-Workbench-1.0.3-universal.dmg
+VERSION='<version>'
+xcrun stapler validate "Ballistics-Workbench-${VERSION}-universal.dmg"
 codesign --verify --deep --strict --verbose=2 '/Volumes/Ballistics Workbench/Ballistics Workbench.app'
 ```
 
 Verify the guided installer directly with:
 
 ```bash
-xcrun stapler validate Ballistics-Workbench-1.0.3-universal-Installer.pkg
-pkgutil --check-signature Ballistics-Workbench-1.0.3-universal-Installer.pkg
+VERSION='<version>'
+xcrun stapler validate "Ballistics-Workbench-${VERSION}-universal-Installer.pkg"
+pkgutil --check-signature "Ballistics-Workbench-${VERSION}-universal-Installer.pkg"
 ```
 
 ## Dependency maintenance
@@ -215,7 +219,8 @@ Automated pull requests are never auto-merged.
 ## Release checklist
 
 1. Review the changelog and model-validity documentation.
-2. Update `package.json`, `package-lock.json`, `CMakeLists.txt`, and the native engine version.
+2. Edit the appropriate authority fields in `config/product-metadata.json`, run
+   `npm run identity:generate`, and review every generated consumer diff.
 3. Update the model version only when the numerical model or built-in definitions changed, and
    regenerate every model artifact that carries that identity.
 4. Run `npm ci`, `npm run format:check`, `npm run validate:artifacts`, `npm test`, and

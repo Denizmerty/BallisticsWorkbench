@@ -12,6 +12,11 @@ updates:
     labels:
       - dependencies
       - security
+    ignore:
+      # Electron 44 embeds Node 24; advance this major only with the Electron runtime.
+      - dependency-name: '@types/node'
+        update-types:
+          - version-update:semver-major
     groups:
       production-runtime:
         dependency-type: production

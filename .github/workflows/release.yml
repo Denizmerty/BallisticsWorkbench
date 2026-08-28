@@ -39,7 +39,7 @@ jobs:
           echo "generated_at=$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')" >> "${GITHUB_OUTPUT}"
 
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.metadata.outputs.tag }}
           fetch-depth: 0
@@ -53,9 +53,9 @@ jobs:
         run: echo "commit=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install lockfile-pinned dependencies
@@ -81,18 +81,18 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -120,12 +120,13 @@ jobs:
       - name: Verify the Windows interaction budget
         shell: pwsh
         run: |
-          build\ballistics_benchmarks.exe --iterations 5 --output build\validation\benchmark.json
-          npm run performance:assess -- `
+          npm run performance:ci -- `
+            --benchmark-executable build/ballistics_benchmarks.exe `
             --benchmark build/validation/benchmark.json `
             --engine build/stage/bin/ballistics_cli.exe `
             --output build/validation/interaction-performance.json `
-            --iterations 5
+            --iterations 5 `
+            --attempts 2
           npm run performance:trend -- `
             --benchmark build/validation/benchmark.json `
             --history benchmarks/history.json `
@@ -193,7 +194,7 @@ jobs:
             --notes "Authenticode is required when Windows signing secrets are configured."
 
       - name: Stage Windows release inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-windows
           path: |
@@ -221,18 +222,18 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -291,12 +292,13 @@ jobs:
 
       - name: Verify the macOS interaction budget
         run: |
-          ./build/ballistics_benchmarks --iterations 5 --output build/validation/benchmark.json
-          npm run performance:assess -- \
+          npm run performance:ci -- \
+            --benchmark-executable build/ballistics_benchmarks \
             --benchmark build/validation/benchmark.json \
             --engine build/stage/bin/ballistics_cli \
             --output build/validation/interaction-performance.json \
-            --iterations 5
+            --iterations 5 \
+            --attempts 2
           npm run performance:trend -- \
             --benchmark build/validation/benchmark.json \
             --history benchmarks/history.json \
@@ -411,7 +413,7 @@ jobs:
             --notes 'Developer ID signing and Apple notarization are enforced when credentials are configured.'
 
       - name: Stage macOS release inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-macos
           path: |
@@ -427,18 +429,18 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -453,12 +455,13 @@ jobs:
 
       - name: Verify Linux interaction budget and benchmark trend
         run: |
-          ./build/ballistics_benchmarks --iterations 5 --output build/validation/benchmark.json
-          npm run performance:assess -- \
+          npm run performance:ci -- \
+            --benchmark-executable build/ballistics_benchmarks \
             --benchmark build/validation/benchmark.json \
             --engine build/stage/bin/ballistics_cli \
             --output build/validation/interaction-performance.json \
-            --iterations 5
+            --iterations 5 \
+            --attempts 2
           npm run performance:trend -- \
             --benchmark build/validation/benchmark.json \
             --history benchmarks/history.json \
@@ -501,7 +504,7 @@ jobs:
             --notes 'Linux AppImage and tar.gz packages are unsigned and validated on Ubuntu x64.'
 
       - name: Stage Linux release inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-linux
           path: |
@@ -521,21 +524,21 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install lockfile-pinned dependencies
         run: npm ci --no-audit --no-fund
 
       - name: Download platform release inputs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: release-*
           path: release-input
@@ -556,7 +559,7 @@ jobs:
           npm run release:verify-assets -- --directory outputs/release
 
       - name: Upload final release bundle for retention
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-${{ needs.verify.outputs.version }}
           path: outputs/release/*
@@ -576,18 +579,28 @@ jobs:
             prerelease=true
             signing_note='Signing credentials were incomplete or unavailable. These artifacts are a pre-release. Inspect release-manifest.json before use.'
           fi
+          release_title="Ballistics Workbench ${RELEASE_TAG#v}"
+          release_notes="$signing_note SHA256SUMS.txt, the CycloneDX SBOM, dependency-license inventory, and traceable release manifest are attached."
           arguments=(
             "$RELEASE_TAG"
             outputs/release/*
             --verify-tag
-            --title "Ballistics Workbench ${RELEASE_TAG#v}"
+            --title "$release_title"
             --generate-notes
-            --notes "$signing_note SHA256SUMS.txt, the CycloneDX SBOM, dependency-license inventory, and traceable release manifest are attached."
+            --notes "$release_notes"
           )
           [[ "$prerelease" = true ]] && arguments+=(--prerelease)
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            while IFS= read -r asset; do
+              if [[ ! -f "outputs/release/$asset" ]]; then
+                gh release delete-asset "$RELEASE_TAG" "$asset" --yes
+              fi
+            done < <(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
             gh release upload "$RELEASE_TAG" outputs/release/* --clobber
-            gh release edit "$RELEASE_TAG" --prerelease="$prerelease"
+            gh release edit "$RELEASE_TAG" \
+              --title "$release_title" \
+              --notes "$release_notes" \
+              --prerelease="$prerelease"
           else
             gh release create "${arguments[@]}"
           fi

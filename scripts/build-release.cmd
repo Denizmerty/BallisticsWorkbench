@@ -14,7 +14,7 @@ echo.
 
 where node.exe >nul 2>nul
 if errorlevel 1 (
-    echo ERROR: Node.js 22 or later is required and was not found on PATH.
+    echo ERROR: Node.js 24 or later is required and was not found on PATH.
     goto :failed
 )
 
@@ -24,9 +24,9 @@ if errorlevel 1 (
     goto :failed
 )
 
-node -e "process.exit(Number(process.versions.node.split('.')[0]) >= 22 ? 0 : 1)"
+node -e "process.exit(Number(process.versions.node.split('.')[0]) >= 24 ? 0 : 1)"
 if errorlevel 1 (
-    echo ERROR: Node.js 22 or later is required.
+    echo ERROR: Node.js 24 or later is required.
     node --version
     goto :failed
 )

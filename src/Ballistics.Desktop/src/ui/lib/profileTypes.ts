@@ -51,8 +51,7 @@ export type FirearmProfileData =
       };
 
 export type AmmunitionProfileData =
-    | { selection: 'builtIn'; loadId: string }
-    | { selection: 'custom'; load: CustomDraft };
+    { selection: 'builtIn'; loadId: string } | { selection: 'custom'; load: CustomDraft };
 
 export type CombinedScenarioProfileData = {
     inputs: Inputs;
@@ -90,10 +89,7 @@ export type CombinedScenarioProfile = NamedProfileBase & {
 };
 
 export type NamedProfile =
-    | EnvironmentProfile
-    | FirearmProfile
-    | AmmunitionProfile
-    | CombinedScenarioProfile;
+    EnvironmentProfile | FirearmProfile | AmmunitionProfile | CombinedScenarioProfile;
 
 export type ProfileDocument = {
     format: typeof PROFILE_FORMAT;

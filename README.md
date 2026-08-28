@@ -91,7 +91,7 @@ for users who prefer to drag the app into Applications.
 - Visual Studio 2026 with the **Desktop development with C++** workload
 - MSVC v145 toolset
 - Windows 11 SDK 10.0.26100.0
-- Node.js 22 or later with npm
+- Node.js 24 or later with npm
 - CMake 3.24 or later and Ninja for command-line native builds
 
 ## Build with CMake presets
@@ -107,7 +107,9 @@ The preset builds every native target with warnings as errors, runs all CTest ta
 the packaging runtime into `build\stage`. Hand-maintained Visual Studio solution/project files are
 not used. Visual Studio, command-line builds, CI, and packaging consume the same CMake definitions.
 
-The desktop project restores the lockfile-pinned npm dependencies automatically when necessary.
+Run `npm ci` after cloning and whenever `package-lock.json` changes. Native-only presets reuse the
+installed dependencies for their generated-contract checks; CI and release jobs perform a clean
+lockfile restore before building.
 
 ## Command-line development
 
@@ -168,7 +170,7 @@ load/unit/theme/status/table/profile interactions, verifies a six-load CSV expor
 and IPC, and uploads both installers as a build artifact. No Apple Developer membership and no
 local Mac are required for test builds.
 
-To build it by hand on a Mac with the Xcode command-line tools and Node.js 22:
+To build it by hand on a Mac with the Xcode command-line tools and Node.js 24:
 
 ```bash
 npm ci

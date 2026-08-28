@@ -26,8 +26,13 @@ All platforms require:
 
 - CMake 3.24 or later
 - Ninja
-- Node.js 22 or later and npm 10 or later
+- Node.js 24 or later and npm 10 or later
 - The lockfile-pinned npm dependencies (`npm ci`)
+
+The desktop TypeScript configuration deliberately follows the Node major embedded by Electron.
+Electron 44 embeds Node 24, so `@types/node` remains on major 24 even when a newer standalone Node
+type package exists. Advance the runtime, type definitions, CI version, and this requirement
+together.
 
 Windows also requires a Visual Studio installation with the Desktop development with C++
 workload. The build orchestrator locates the latest installation through `vswhere` and imports its

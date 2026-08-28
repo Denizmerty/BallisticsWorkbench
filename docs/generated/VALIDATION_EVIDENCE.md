@@ -378,7 +378,7 @@ Repository data: `sources/g7-mccoy.csv`. SHA-256: `a275757af325add428ca961505e04
     - **Author:** Robert L. McCoy
     - **Edition:** Second edition
     - **Year:** 1999
-    - **Online Transcription:** https://jbmballistics.com/ballistics/downloads/text/mcg7.txt
+    - **Online Transcription:** https://jbmballistics.com/downloads/mcg7.txt
 - **Cross Checks:**
     - https://appliedballisticsllc.com/wp-content/uploads/2021/06/ABDOC130_CDM-2021-Copyright.pdf
 - **Retrieved:** 2026-08-11

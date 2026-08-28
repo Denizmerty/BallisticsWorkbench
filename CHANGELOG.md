@@ -4,6 +4,19 @@ All notable changes to Ballistics Workbench are recorded in this file.
 
 ## Unreleased
 
+## 1.0.4 - 2026-08-28
+
+- Upgraded Electron, Vite, Vitest, Prettier, the React build plugin, and supporting type/tooling
+  packages. CI, local prerequisites, and Electron now consistently target Node 24, with Node types
+  deliberately held to the embedded runtime major.
+- Pinned GitHub Actions to current immutable commits, added JavaScript/TypeScript and C++ CodeQL
+  analysis, removed duplicate branch/PR matrices, and made the shared-runner performance gate use
+  five samples, platform-specific enforcement ceilings, and a single contention retry.
+- Made release reruns reconcile title, notes, prerelease state, and obsolete assets. Dependency
+  lockfile formatting now matches npm output, release/version documentation follows the canonical
+  metadata generator, and the JBM G7 evidence link uses its current location.
+- Made packaged UI smoke runs idempotent by clearing their isolated output profile before launch.
+
 ## 1.0.3 - 2026-08-28
 
 - Added a universal macOS PKG installer for Apple Silicon and Intel Macs. The guided installer
@@ -94,7 +107,8 @@ All notable changes to Ballistics Workbench are recorded in this file.
   BlackShock, and Federal Power-Shok SP, plus a cross-platform generator that exercises the real
   native JSON calibration protocol and produces machine-readable residuals and deterministic
   documentation. Re-running those fits advanced model identity to `2026.08.8` and set the built-in
-  G1 BCs to `0.054624734`, `0.070983794`, and `0.312322241`, respectively. Just-determined fits are
+  G1 BCs to `0.054624716532086`, `0.0709673760860212`, and `0.312368144835017`, respectively.
+  Just-determined fits are
   accepted with an `insufficient_information` status, zero residual degrees of freedom, and no
   confidence interval. They cannot be presented as validation evidence.
 - Added a deterministic 13-trajectory independent fixed-time RK4 flight matrix covering cold/dense

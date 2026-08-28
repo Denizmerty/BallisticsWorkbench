@@ -12,7 +12,7 @@ plan*.md
 planning*.md
 notes*.md
 
-# Package-manager output must only be updated by npm.
+# npm owns dependency resolution; the identity generator may update root product versions.
 package-lock.json
 
 # Generated source and evidence must only be updated by their generators.

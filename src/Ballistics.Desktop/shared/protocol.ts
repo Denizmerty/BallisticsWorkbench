@@ -268,14 +268,10 @@ export type MonteCarloTrajectoryUncertainty = {
 };
 
 export type TrajectoryUncertainty =
-    | FirstOrderTrajectoryUncertainty
-    | MonteCarloTrajectoryUncertainty;
+    FirstOrderTrajectoryUncertainty | MonteCarloTrajectoryUncertainty;
 
 export type TrajectoryEventStatus =
-    | 'complete'
-    | 'horizon_limited'
-    | 'baseline_unavailable'
-    | 'not_applicable';
+    'complete' | 'horizon_limited' | 'baseline_unavailable' | 'not_applicable';
 
 export type MachCrossing = {
     mach: 0.8 | 1 | 1.2;

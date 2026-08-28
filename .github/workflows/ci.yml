@@ -2,14 +2,15 @@ name: Build and test
 
 on:
   push:
-    branches: ['**']
+    branches: [master]
   pull_request:
+    branches: [master]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -18,12 +19,12 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install lockfile-pinned dependencies
@@ -44,7 +45,7 @@ jobs:
             --generated-at "${generated_at}"
 
       - name: Upload supply-chain reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: supply-chain
           path: build/supply-chain/*
@@ -55,16 +56,16 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -77,12 +78,13 @@ jobs:
       - name: Build and test the native core (GCC)
         run: |
           node scripts/build/native-build.mjs --preset linux-gcc --fresh
-          ./build/ballistics_benchmarks --iterations 3 --output build/validation/benchmark.json
-          npm run performance:assess -- \
+          npm run performance:ci -- \
+            --benchmark-executable build/ballistics_benchmarks \
             --benchmark build/validation/benchmark.json \
             --engine build/stage/bin/ballistics_cli \
             --output build/validation/interaction-performance.json \
-            --iterations 3
+            --iterations 5 \
+            --attempts 2
           npm run performance:trend -- \
             --benchmark build/validation/benchmark.json \
             --history benchmarks/history.json \
@@ -98,7 +100,7 @@ jobs:
           npm run validation:summary:check
 
       - name: Upload GCC numerical and benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: validation-linux-gcc
           path: build/validation/*
@@ -120,7 +122,7 @@ jobs:
             --disable-sandbox
 
       - name: Upload Linux packages and UI report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: package-linux-x64
           path: |
@@ -134,16 +136,16 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -165,12 +167,13 @@ jobs:
       - name: Generate MSVC benchmark report
         shell: pwsh
         run: |
-          build\ballistics_benchmarks.exe --iterations 3 --output build\validation\benchmark.json
-          npm run performance:assess -- `
+          npm run performance:ci -- `
+            --benchmark-executable build/ballistics_benchmarks.exe `
             --benchmark build/validation/benchmark.json `
             --engine build/stage/bin/ballistics_cli.exe `
             --output build/validation/interaction-performance.json `
-            --iterations 3
+            --iterations 5 `
+            --attempts 2
           npm run performance:trend -- `
             --benchmark build/validation/benchmark.json `
             --history benchmarks/history.json `
@@ -186,7 +189,7 @@ jobs:
           npm run validation:summary:check
 
       - name: Upload MSVC numerical and benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: validation-windows-msvc
           path: build/validation/*
@@ -210,7 +213,7 @@ jobs:
         run: npm run test:e2e:win
 
       - name: Upload the Windows installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-installer
           path: outputs/installer/*.exe
@@ -221,16 +224,16 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -243,12 +246,13 @@ jobs:
       - name: Build and test the native core (Clang, universal)
         run: |
           node scripts/build/native-build.mjs --preset macos-universal --fresh
-          ./build/ballistics_benchmarks --iterations 3 --output build/validation/benchmark.json
-          npm run performance:assess -- \
+          npm run performance:ci -- \
+            --benchmark-executable build/ballistics_benchmarks \
             --benchmark build/validation/benchmark.json \
             --engine build/stage/bin/ballistics_cli \
             --output build/validation/interaction-performance.json \
-            --iterations 3
+            --iterations 5 \
+            --attempts 2
           npm run performance:trend -- \
             --benchmark build/validation/benchmark.json \
             --history benchmarks/history.json \
@@ -267,7 +271,7 @@ jobs:
           npm run validation:summary:check
 
       - name: Upload Clang numerical and benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: validation-macos-clang
           path: build/validation/*
@@ -320,7 +324,7 @@ jobs:
             --output outputs/ui-smoke/macos
 
       - name: Upload the macOS installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: macos-installers
           path: |
@@ -333,16 +337,16 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
@@ -372,7 +376,7 @@ jobs:
 
       - name: Retain and minimize protocol-fuzzer failures
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: protocol-fuzzer-failures
           path: build/fuzz-artifacts/*
