@@ -39,7 +39,7 @@ jobs:
           echo "generated_at=$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')" >> "${GITHUB_OUTPUT}"
 
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.metadata.outputs.tag }}
           fetch-depth: 0
@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
@@ -221,7 +221,7 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
@@ -427,7 +427,7 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
@@ -521,7 +521,7 @@ jobs:
 
     steps:
       - name: Check out the immutable tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.verify.outputs.tag }}
 
