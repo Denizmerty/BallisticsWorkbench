@@ -193,7 +193,7 @@ jobs:
             --notes "Authenticode is required when Windows signing secrets are configured."
 
       - name: Stage Windows release inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-windows
           path: |
@@ -411,7 +411,7 @@ jobs:
             --notes 'Developer ID signing and Apple notarization are enforced when credentials are configured.'
 
       - name: Stage macOS release inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-macos
           path: |
@@ -501,7 +501,7 @@ jobs:
             --notes 'Linux AppImage and tar.gz packages are unsigned and validated on Ubuntu x64.'
 
       - name: Stage Linux release inputs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-linux
           path: |
@@ -556,7 +556,7 @@ jobs:
           npm run release:verify-assets -- --directory outputs/release
 
       - name: Upload final release bundle for retention
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-${{ needs.verify.outputs.version }}
           path: outputs/release/*

@@ -44,7 +44,7 @@ jobs:
             --generated-at "${generated_at}"
 
       - name: Upload supply-chain reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: supply-chain
           path: build/supply-chain/*
@@ -98,7 +98,7 @@ jobs:
           npm run validation:summary:check
 
       - name: Upload GCC numerical and benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: validation-linux-gcc
           path: build/validation/*
@@ -120,7 +120,7 @@ jobs:
             --disable-sandbox
 
       - name: Upload Linux packages and UI report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-linux-x64
           path: |
@@ -186,7 +186,7 @@ jobs:
           npm run validation:summary:check
 
       - name: Upload MSVC numerical and benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: validation-windows-msvc
           path: build/validation/*
@@ -210,7 +210,7 @@ jobs:
         run: npm run test:e2e:win
 
       - name: Upload the Windows installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-installer
           path: outputs/installer/*.exe
@@ -267,7 +267,7 @@ jobs:
           npm run validation:summary:check
 
       - name: Upload Clang numerical and benchmark reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: validation-macos-clang
           path: build/validation/*
@@ -320,7 +320,7 @@ jobs:
             --output outputs/ui-smoke/macos
 
       - name: Upload the macOS installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: macos-installers
           path: |
@@ -372,7 +372,7 @@ jobs:
 
       - name: Retain and minimize protocol-fuzzer failures
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: protocol-fuzzer-failures
           path: build/fuzz-artifacts/*
