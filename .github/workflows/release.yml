@@ -325,6 +325,14 @@ jobs:
               --config.mac.notarize=false \
               --config.pkg.identity="$MACOS_INSTALLER_IDENTITY"
           else
+            # Empty GitHub secret values are still exported as environment variables.
+            # electron-builder treats an empty certificate link as the current directory,
+            # so remove the signing variables entirely for the free unsigned build.
+            unset CSC_LINK CSC_KEY_PASSWORD CSC_INSTALLER_LINK CSC_INSTALLER_KEY_PASSWORD
+            unset MACOS_IDENTITY MACOS_INSTALLER_IDENTITY
+            unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+            codesign --force --sign - build/stage/bin/ballistics_cli
             npm run package:mac
           fi
 
