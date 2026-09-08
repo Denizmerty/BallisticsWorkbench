@@ -270,6 +270,9 @@ npm run test:e2e:win
 
 ## Documentation
 
+- [`docs/Ballistics-Workbench-Technical-Documentation.pdf`](docs/Ballistics-Workbench-Technical-Documentation.pdf)
+  provides the complete mathematical, physical, numerical, and computational reference for the
+  workbench.
 - [`docs/MODEL_AND_VALIDATION.md`](docs/MODEL_AND_VALIDATION.md) describes the numerical models,
   built-in load data, output semantics, and limitations.
 - [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) describes the application architecture and release

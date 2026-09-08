@@ -74,3 +74,9 @@ Desktop.ini
 /scratch/
 /temp/
 /tmp/
+
+# Local technical-documentation sources and build script.
+# Generated documents are already covered by /outputs/ above.
+/docs/technical/
+/Build-TechnicalDocumentation.ps1
+/Listfiles.ps1
