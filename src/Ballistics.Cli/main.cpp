@@ -10,10 +10,7 @@
 #include "protocol.hpp"
 #include "response_writer.hpp"
 
-int main(
-    int argc,
-    char** argv
-)
+int main(int argc, char** argv)
 {
     const bool structured_protocol = argc == 1;
     std::string request_id;
@@ -22,8 +19,7 @@ int main(
         ballistics::protocol::Request request;
         if (structured_protocol)
         {
-            auto parsed =
-                ballistics::protocol::parse_request(ballistics::cli::read_standard_input(std::cin));
+            auto parsed = ballistics::protocol::parse_request(ballistics::cli::read_standard_input(std::cin));
             request_id = parsed.request_id;
             if (!parsed.request)
             {
@@ -43,13 +39,7 @@ int main(
     {
         if (structured_protocol)
         {
-            std::cout << ballistics::protocol::error_response(
-                request_id,
-                { { "engine.calculation.failed",
-                    "$",
-                    error.what(),
-                    ballistics::ValidationSeverity::error } }
-            );
+            std::cout << ballistics::protocol::error_response(request_id, { { "engine.calculation.failed", "$", error.what(), ballistics::ValidationSeverity::error } });
             return 3;
         }
         std::cerr << error.what() << '\n';

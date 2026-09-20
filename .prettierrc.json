@@ -21,12 +21,6 @@
             "options": {
                 "tabWidth": 4
             }
-        },
-        {
-            "files": "validation/scenarios/independent-flight-matrix.json",
-            "options": {
-                "tabWidth": 2
-            }
         }
     ]
 }

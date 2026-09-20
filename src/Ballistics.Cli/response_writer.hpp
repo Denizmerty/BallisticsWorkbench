@@ -7,6 +7,6 @@
 namespace ballistics::cli
 {
 
-int write_response(const protocol::Request& request, std::ostream& output);
+    int write_response(const protocol::Request& request, std::ostream& output);
 
 } // namespace ballistics::cli
