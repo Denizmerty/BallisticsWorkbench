@@ -80,3 +80,6 @@ Desktop.ini
 /docs/technical/
 /Build-TechnicalDocumentation.ps1
 /Listfiles.ps1
+
+# Local repository automation helpers.
+/Merge-CodexBranch.ps1
