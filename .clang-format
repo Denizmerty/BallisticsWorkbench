@@ -1,7 +1,9 @@
+# Match the Fishing Spear reference: four spaces, Allman blocks, and explicit bodies.
 BasedOnStyle: LLVM
 Language: Cpp
 Standard: c++20
-ColumnLimit: 100
+# Preserve deliberate line breaks without forcing short signatures and calls apart.
+ColumnLimit: 0
 IndentWidth: 4
 ContinuationIndentWidth: 4
 TabWidth: 4
@@ -28,26 +30,27 @@ BraceWrapping:
   SplitEmptyNamespace: true
   SplitEmptyRecord: true
 
-NamespaceIndentation: None
+NamespaceIndentation: All
+AccessModifierOffset: -4
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
-AllowShortLambdasOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: None
 AllowShortLoopsOnASingleLine: false
 AllowShortNamespacesOnASingleLine: false
 
-AlignAfterOpenBracket: BlockIndent
+AlignAfterOpenBracket: DontAlign
 AlignOperands: DontAlign
 BinPackArguments: false
 BinPackLongBracedList: false
-BinPackParameters: OnePerLine
-AllowAllArgumentsOnNextLine: false
-AllowAllParametersOfDeclarationOnNextLine: false
+BinPackParameters: BinPack
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
 BreakBeforeTernaryOperators: true
-BreakFunctionDefinitionParameters: true
-PackConstructorInitializers: Never
+BreakFunctionDefinitionParameters: false
+PackConstructorInitializers: BinPack
 PenaltyIndentedWhitespace: 10
 
 Cpp11BracedListStyle: false
