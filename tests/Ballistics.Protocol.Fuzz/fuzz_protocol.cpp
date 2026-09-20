@@ -8,48 +8,41 @@
 namespace
 {
 
-void require(
-    bool condition
-)
-{
-    if (!condition)
+    void require(bool condition)
     {
-        std::abort();
-    }
-}
-
-void verify_result(
-    const ballistics::protocol::RequestParseResult& result
-)
-{
-    require(result.request.has_value() == result.issues.empty());
-    if (result.request)
-    {
-        require(result.request->protocol_version == ballistics::protocol::current_version);
-        require(!result.request->request_id.empty());
-        require(result.request->request_id.size() <= 128);
-        return;
+        if (!condition)
+        {
+            std::abort();
+        }
     }
 
-    require(!result.issues.empty());
-    for (const auto& issue : result.issues)
+    void verify_result(const ballistics::protocol::RequestParseResult& result)
     {
-        require(!issue.code.empty());
-        require(!issue.field.empty());
-        require(!issue.message.empty());
-    }
+        require(result.request.has_value() == result.issues.empty());
+        if (result.request)
+        {
+            require(result.request->protocol_version == ballistics::protocol::current_version);
+            require(!result.request->request_id.empty());
+            require(result.request->request_id.size() <= 128);
+            return;
+        }
 
-    const auto response = ballistics::protocol::error_response(result.request_id, result.issues);
-    require(!response.empty());
-    require(response.back() == '\n');
-}
+        require(!result.issues.empty());
+        for (const auto& issue : result.issues)
+        {
+            require(!issue.code.empty());
+            require(!issue.field.empty());
+            require(!issue.message.empty());
+        }
+
+        const auto response = ballistics::protocol::error_response(result.request_id, result.issues);
+        require(!response.empty());
+        require(response.back() == '\n');
+    }
 
 } // namespace
 
-extern "C" int LLVMFuzzerTestOneInput(
-    const std::uint8_t* data,
-    std::size_t size
-)
+extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size)
 {
     if (size > ballistics::protocol::maximum_request_bytes)
     {

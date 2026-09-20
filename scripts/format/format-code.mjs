@@ -67,6 +67,37 @@ async function formatSupplementalText(path) {
     await writeFile(path, formatted, 'utf8');
 }
 
+async function formatNativeTemplate(path, clangFormat) {
+    const current = await readFile(path, 'utf8');
+    const prefix = '__BW_CMAKE_FORMAT_PLACEHOLDER_';
+    if (current.includes(prefix)) throw new Error(`Reserved formatter marker in ${path}`);
+    const placeholders = [];
+    const protectedSource = current.replace(/@[A-Z][A-Z0-9_]*@/g, (placeholder) => {
+        const marker = `${prefix}${placeholders.length}__`;
+        placeholders.push([marker, placeholder]);
+        return marker;
+    });
+    const result = spawnSync(
+        clangFormat,
+        ['--style=file', '--assume-filename', path.slice(0, -3)],
+        {
+            cwd: repositoryRoot,
+            input: protectedSource,
+            encoding: 'utf8',
+            windowsHide: true,
+        },
+    );
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(`Template formatting failed: ${result.stderr}`);
+    let formatted = result.stdout;
+    for (const [marker, placeholder] of placeholders) {
+        formatted = formatted.replaceAll(marker, placeholder);
+    }
+    if (current === formatted) return;
+    if (check) throw new Error(`Native template formatting is required: ${path}`);
+    await writeFile(path, formatted, 'utf8');
+}
+
 const clangFormat = locateClangFormat();
 const nativeFiles = [];
 for (const directory of ['src', 'tests', 'benchmarks']) {
@@ -86,6 +117,7 @@ for (let offset = 0; offset < nativeFiles.length; offset += 100) {
             : ['-i', '--style=file', ...files],
     );
 }
+await formatNativeTemplate(join(repositoryRoot, 'cmake', 'product_identity.hpp.in'), clangFormat);
 
 const prettier = join(repositoryRoot, 'node_modules', 'prettier', 'bin', 'prettier.cjs');
 if (!existsSync(prettier)) throw new Error('Prettier is not installed. Run npm ci first.');
@@ -96,7 +128,8 @@ const prettierPatterns = [
     'validation/**/*.{ts,tsx,js,cjs,mjs,json,md,yml,yaml}',
     'protocol/**/*.{json,jsonc,yml,yaml,md}',
     'release/**/*.{json,jsonc,yml,yaml,md}',
-    'tests/protocol/**/*.{json,jsonc,yml,yaml}',
+    'tests/**/*.{json,jsonc,yml,yaml}',
+    'benchmarks/**/*.{json,jsonc,yml,yaml}',
     'config/**/*.{json,jsonc,yml,yaml}',
     'docs/**/*.md',
     '*.{ts,tsx,js,cjs,mjs,json,jsonc,yml,yaml,html,css,scss,md}',

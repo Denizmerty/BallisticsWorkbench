@@ -5,6 +5,6 @@
 namespace ballistics::cli
 {
 
-[[nodiscard]] protocol::Request legacy_request(int argc, char** argv);
+    [[nodiscard]] protocol::Request legacy_request(int argc, char** argv);
 
 } // namespace ballistics::cli

@@ -548,7 +548,7 @@ const artifact = {
     mpbrCases: [solveMpbrCase()],
 };
 
-const serialized = `${JSON.stringify(artifact, null, 2)}\n`;
+const serialized = `${JSON.stringify(artifact, null, 4)}\n`;
 const outputIndex = process.argv.indexOf('--output');
 if (outputIndex >= 0) {
     const outputPath = process.argv[outputIndex + 1];
