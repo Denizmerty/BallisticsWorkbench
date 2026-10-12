@@ -194,7 +194,7 @@ jobs:
             --notes "Authenticode is required when Windows signing secrets are configured."
 
       - name: Stage Windows release inputs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-windows
           path: |
@@ -413,7 +413,7 @@ jobs:
             --notes 'Developer ID signing and Apple notarization are enforced when credentials are configured.'
 
       - name: Stage macOS release inputs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-macos
           path: |
@@ -504,7 +504,7 @@ jobs:
             --notes 'Linux AppImage and tar.gz packages are unsigned and validated on Ubuntu x64.'
 
       - name: Stage Linux release inputs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-linux
           path: |
@@ -559,7 +559,7 @@ jobs:
           npm run release:verify-assets -- --directory outputs/release
 
       - name: Upload final release bundle for retention
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-${{ needs.verify.outputs.version }}
           path: outputs/release/*
